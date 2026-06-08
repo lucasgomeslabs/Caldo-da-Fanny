@@ -1,0 +1,23 @@
+# Segredos / ambiente
+.env
+.env.*
+!.env.example
+
+# Dependências e build
+node_modules/
+dist/
+coverage/
+
+# Logs
+*.log
+
+# Editores / IDE
+.vscode/
+.idea/
+
+# SO
+.DS_Store
+Thumbs.db
+
+# Arquivo redundante (backup zipado dos próprios arquivos do projeto)
+files.zip
