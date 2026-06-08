@@ -173,6 +173,15 @@
   .spin{width:18px;height:18px;border:2.5px solid rgba(6,59,30,.35);border-top-color:#063b1e;
     border-radius:50%;animation:sp .7s linear infinite}
   @keyframes sp{to{transform:rotate(360deg)}}
+
+  /* CEP + endereço auto (Bloco 1) */
+  .cep-status{font-size:12.5px;margin-top:6px;font-weight:600;min-height:0;line-height:1.35}
+  .cep-status.ok{color:var(--herb)}
+  .cep-status.warn{color:var(--broth)}
+  .cep-status.muted{color:#8a6d4f}
+  .row2{display:flex;gap:10px}
+  .row2 .field{flex:1;margin-bottom:16px}
+  .row2 .uf{flex:0 0 88px;max-width:88px}
 </style>
 </head>
 <body>
@@ -262,19 +271,42 @@
     </div>
 
     <div class="field">
+      <label>CEP <span class="req">*</span></label>
+      <input type="text" name="cep" inputmode="numeric" autocomplete="postal-code" maxlength="9" placeholder="00000-000" required>
+      <div class="err">Informe um CEP válido (8 dígitos).</div>
+      <div class="cep-status muted" id="cepStatus"></div>
+    </div>
+
+    <div class="field">
       <label>Endereço completo <span class="req">*</span></label>
       <textarea name="endereco" placeholder="Rua, número, complemento, ponto de referência" required></textarea>
       <div class="err">Informe o endereço.</div>
     </div>
 
     <div class="field">
-      <label>Bairro <span class="req">*</span></label>
+      <label>Bairro</label>
+      <input type="text" name="bairro_cep" placeholder="Preenchido pelo CEP (você pode ajustar)">
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>Cidade</label>
+        <input type="text" name="cidade" placeholder="Cidade">
+      </div>
+      <div class="field uf">
+        <label>UF</label>
+        <input type="text" name="uf" maxlength="2" placeholder="UF" style="text-transform:uppercase">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Área de entrega <span class="req">*</span></label>
       <div class="pill-group" id="bairros">
         <label class="pill"><input type="radio" name="bairro" value="Parque Imperial" required>Parque Imperial</label>
         <label class="pill"><input type="radio" name="bairro" value="Região">Região</label>
         <label class="pill"><input type="radio" name="bairro" value="Outro">Outro</label>
       </div>
-      <div class="err" id="err-bairro">Escolha o bairro.</div>
+      <div class="err" id="err-bairro">Escolha a área de entrega.</div>
     </div>
 
     <h2><span class="num">3</span> Pagamento</h2>
@@ -357,6 +389,64 @@ $('#minus').onclick=()=>{ if(qty>1){qty--;updateTotal();} };
 document.querySelectorAll('#form input,#form textarea').forEach(el=>{
   el.addEventListener('input',()=>el.closest('.field')?.classList.remove('invalid'));
 });
+
+/* ===================== CEP + ViaCEP (Bloco 1) ===================== */
+const cepEl=document.querySelector('[name="cep"]');
+const cepStatus=document.getElementById('cepStatus');
+const autoFields={
+  endereco:document.querySelector('[name="endereco"]'),
+  bairro_cep:document.querySelector('[name="bairro_cep"]'),
+  cidade:document.querySelector('[name="cidade"]'),
+  uf:document.querySelector('[name="uf"]')
+};
+const autoLast={endereco:'',bairro_cep:'',cidade:'',uf:''};
+let lastCepQueried='';
+function setCepStatus(msg,cls){ cepStatus.textContent=msg||''; cepStatus.className='cep-status '+(cls||'muted'); }
+// Só preenche se o campo estiver vazio ou ainda com o valor que o próprio ViaCEP pôs
+// (assim nunca sobrescreve o que o cliente digitou manualmente).
+function setAuto(key,val){
+  if(!val) return;
+  const el=autoFields[key]; if(!el) return;
+  if(el.value.trim()===''||el.value===autoLast[key]){
+    el.value=val; autoLast[key]=val;
+    el.closest('.field')?.classList.remove('invalid');
+  }
+}
+async function lookupCep(cep){
+  if(cep===lastCepQueried) return;       // evita buscas repetidas do mesmo CEP
+  lastCepQueried=cep;
+  setCepStatus('Buscando endereço…','muted');
+  try{
+    const r=await fetch('https://viacep.com.br/ws/'+cep+'/json/');
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    if(d.erro){ setCepStatus('CEP não encontrado. Você pode preencher o endereço manualmente.','warn'); return; }
+    setAuto('endereco',d.logradouro);
+    setAuto('bairro_cep',d.bairro);
+    setAuto('cidade',d.localidade);
+    setAuto('uf',d.uf);
+    setCepStatus('Endereço preenchido pelo CEP ✓ — confira e complete o número.','ok');
+  }catch(err){
+    // Falha do ViaCEP (rede/indisponível) NÃO bloqueia o pedido.
+    console.warn('ViaCEP falhou:',err);
+    setCepStatus('Não foi possível buscar o CEP agora. Preencha o endereço manualmente.','warn');
+  }
+}
+cepEl.addEventListener('input',()=>{
+  let v=cepEl.value.replace(/\D/g,'').slice(0,8);          // só números, máximo 8
+  cepEl.value=v.length>5?v.slice(0,5)+'-'+v.slice(5):v;     // máscara 00000-000
+  cepEl.closest('.field')?.classList.remove('invalid');
+  if(v.length<8){ lastCepQueried=''; }
+  if(v.length===8) lookupCep(v);
+});
+cepEl.addEventListener('blur',()=>{
+  const v=cepEl.value.replace(/\D/g,'');
+  if(v.length===8) lookupCep(v);
+});
+autoFields.uf.addEventListener('input',()=>{ autoFields.uf.value=autoFields.uf.value.toUpperCase(); });
+function resetCep(){ lastCepQueried=''; Object.keys(autoLast).forEach(k=>autoLast[k]=''); setCepStatus('',''); }
+/* ================================================================= */
+
 function validate(){
   let ok=true;
   ['nome','telefone','endereco'].forEach(n=>{
@@ -365,6 +455,8 @@ function validate(){
   });
   const tel=document.querySelector('[name="telefone"]').value.replace(/\D/g,'');
   if(tel.length<10){ document.querySelector('[name="telefone"]').closest('.field').classList.add('invalid'); ok=false; }
+  const cepDig=document.querySelector('[name="cep"]').value.replace(/\D/g,'');
+  if(cepDig.length!==8){ document.querySelector('[name="cep"]').closest('.field').classList.add('invalid'); ok=false; }
   if(!document.querySelector('[name="caldo"]:checked')){ $('#err-caldo').style.display='block'; ok=false; }
   if(!document.querySelector('[name="bairro"]:checked')){ $('#err-bairro').style.display='block'; ok=false; }
   if(!document.querySelector('[name="pagamento"]:checked')){ $('#err-pgto').style.display='block'; ok=false; }
@@ -385,6 +477,10 @@ $('#form').addEventListener('submit', async (e)=>{
     nome:document.querySelector('[name="nome"]').value.trim(),
     telefone:document.querySelector('[name="telefone"]').value.trim(),
     endereco:document.querySelector('[name="endereco"]').value.trim(),
+    cep:document.querySelector('[name="cep"]').value.replace(/\D/g,''),
+    bairro_cep:document.querySelector('[name="bairro_cep"]').value.trim(),
+    cidade:document.querySelector('[name="cidade"]').value.trim(),
+    uf:document.querySelector('[name="uf"]').value.trim().toUpperCase(),
     bairro:document.querySelector('[name="bairro"]:checked').value,
     caldo:document.querySelector('[name="caldo"]:checked').value,
     qtde:qty,
@@ -406,7 +502,10 @@ $('#form').addEventListener('submit', async (e)=>{
 '*Cliente:* '+data.nome+'\n'+
 '*Telefone:* '+data.telefone+'\n'+
 '*Endereço:* '+data.endereco+'\n'+
-'*Bairro:* '+data.bairro+'\n'+
+(data.bairro_cep?'*Bairro:* '+data.bairro_cep+'\n':'')+
+((data.cidade||data.uf)?'*Cidade/UF:* '+data.cidade+(data.uf?'/'+data.uf:'')+'\n':'')+
+(data.cep?'*CEP:* '+data.cep.slice(0,5)+'-'+data.cep.slice(5)+'\n':'')+
+'*Área de entrega:* '+data.bairro+'\n'+
 '————————————\n'+
 '*Pedido:* '+data.qtde+'x '+data.caldo+'\n'+
 '*Pagamento:* '+data.pagamento+'\n'+
@@ -421,7 +520,7 @@ $('#form').addEventListener('submit', async (e)=>{
 $('#again').onclick=()=>{
   $('#form').reset();
   document.querySelectorAll('.sel').forEach(x=>x.classList.remove('sel'));
-  qty=1; updateTotal();
+  qty=1; updateTotal(); resetCep();
   $('#done').style.display='none'; $('#form').style.display='block';
   $('#submitBtn').disabled=false; $('#btnText').textContent='PEÇA PELO WHATSAPP';
 };
