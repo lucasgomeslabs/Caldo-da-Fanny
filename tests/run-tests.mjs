@@ -19,6 +19,7 @@ function makeDom(fetchImpl) {
   const dom = new JSDOM(html, { runScripts: 'dangerously', url: 'https://localhost/' });
   const { window } = dom;
   window.scrollTo = () => {};
+  window.HTMLElement.prototype.scrollIntoView = () => {};
   window.fetch = fetchImpl || (() => Promise.reject(new Error('sem fetch')));
   return window;
 }
@@ -84,7 +85,8 @@ const tests = {
     ok(q(w, '#cepStatus').className.includes('warn'), 'status de aviso (warn)');
     q(w, '[name="nome"]').value = 'Maria';
     q(w, '[name="telefone"]').value = '11999998888';
-    q(w, '[name="endereco"]').value = 'Rua X, 100';
+    q(w, '[name="endereco"]').value = 'Rua X';
+    q(w, '[name="numero"]').value = '100';
     pick(w, '[name="caldo"][value="Caldo Verde"]');
     pick(w, '[name="bairro"][value="Parque Imperial"]');
     pick(w, '[name="pagamento"][value="PIX"]');
@@ -101,7 +103,8 @@ const tests = {
     eq(q(w, '[name="cidade"]').value, '', 'sem autofill em falha de rede');
     q(w, '[name="nome"]').value = 'João';
     q(w, '[name="telefone"]').value = '11988887777';
-    q(w, '[name="endereco"]').value = 'Rua Y, 50';
+    q(w, '[name="endereco"]').value = 'Rua Y';
+    q(w, '[name="numero"]').value = '50';
     pick(w, '[name="caldo"][value="Caldo de Mandioca"]');
     pick(w, '[name="bairro"][value="Região"]');
     pick(w, '[name="pagamento"][value="Dinheiro"]');
@@ -113,7 +116,8 @@ const tests = {
     const w = makeDom(() => Promise.reject(new Error('x')));
     q(w, '[name="nome"]').value = 'Ana';
     q(w, '[name="telefone"]').value = '11977776666';
-    q(w, '[name="endereco"]').value = 'Rua Z, 1';
+    q(w, '[name="endereco"]').value = 'Rua Z';
+    q(w, '[name="numero"]').value = '1';
     pick(w, '[name="caldo"][value="Caldo Verde"]');
     pick(w, '[name="bairro"][value="Parque Imperial"]');
     pick(w, '[name="pagamento"][value="PIX"]');
@@ -133,7 +137,8 @@ const tests = {
     await typeCep(w, '01001000');
     q(w, '[name="nome"]').value = 'Maria Silva';
     q(w, '[name="telefone"]').value = '11999990000';
-    q(w, '[name="endereco"]').value = 'Praça da Sé, 200';
+    q(w, '[name="endereco"]').value = 'Praça da Sé';
+    q(w, '[name="numero"]').value = '200';
     pick(w, '[name="caldo"][value="Caldo Verde"]');
     pick(w, '[name="bairro"][value="Parque Imperial"]');
     pick(w, '[name="pagamento"][value="PIX"]');
@@ -141,6 +146,7 @@ const tests = {
     const href = q(w, '#waLink').href;
     const msg = decodeURIComponent(href);
     ok(href.startsWith('https://wa.me/5511937223540?text='), 'número do WhatsApp inalterado');
+    ok(msg.includes('*Endereço:* Praça da Sé, 200'), 'mensagem com Endereço: rua, número');
     ok(msg.includes('*CEP:* 01001-000'), 'mensagem com CEP formatado');
     ok(msg.includes('*Cidade/UF:* São Paulo/SP'), 'mensagem com Cidade/UF');
     ok(msg.includes('*Bairro:* Sé'), 'mensagem com bairro do CEP');

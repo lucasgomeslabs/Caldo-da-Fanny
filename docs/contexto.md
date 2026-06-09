@@ -6,7 +6,8 @@
 
 - **Última atualização:** Sessão 1
 - **Sessão atual:** 1
-- **Status geral:** Parte 1 commitada (Entrega A + documentação). Próxima: Entrega B (campos de endereço).
+- **Status geral:** **Parte 1 no ar.** **Entrega B concluída** (campos de endereço + scroll/foco
+  ao 1º campo inválido), 29/29 testes, **aguardando commit**. Próxima: Entrega C (segurança).
 
 ---
 
@@ -29,11 +30,13 @@ Google Apps Script que grava pedidos numa planilha — hoje **desligado**.
 (\`https://github.com/lucascontatoedf-lgtm/Caldo-da-Fanny.git\`), branch \`main\`.
 Existe uma branch local \`backup/pre-hardening\` (não publicada, ponto de restauração).
 
-**Publicação:** site estático no **Netlify**, conectado ao **GitHub para deploy automático**
-(cada push em `main` republica o site). A **publish directory é `frontend`** (onde está o
-`index.html`), configurada no `netlify.toml` na raiz, sem etapa de build (`command = ""`).
-ATENÇÃO: o site no ar só reflete o que foi commitado + enviado (push); com o deploy
-automático, o push em `main` já dispara a republicação.
+**Publicação:** site estático no **Netlify**, **já conectado** ao **GitHub com deploy
+automático ativo** — no ar em **https://caldodafanny.netlify.app**. Cada push em `main`
+republica o site sozinho. A **publish directory é `frontend`** (onde está o `index.html`),
+configurada no `netlify.toml` na raiz, sem etapa de build (`command = ""`). Acesso do
+Netlify ao GitHub restrito **apenas ao repositório `Caldo-da-Fanny`** (menor privilégio).
+Sites de teste antigos (`cdf-teste1`, `radiant-salmiakki-989226`) foram **deletados**;
+resta só o `caldodafanny`.
 
 ---
 
@@ -51,10 +54,11 @@ automático, o push em `main` já dispara a republicação.
 - **Validação:** existe por JS (\`validate()\`).
 - **CEP + ViaCEP:** existe — máscara de CEP, autofill não-bloqueante. O ViaCEP retorna o
   logradouro (rua), útil para a Entrega B de campos de endereço.
-- **Endereço:** hoje é um campo único de "endereço completo" (textarea). Será separado em
-  rua / número / complemento-referência (Entrega B).
-- **Selo "Entrega grátis / Parque Imperial":** alinhado corretamente no arquivo LOCAL.
-  O desalinhamento visto era só na versão antiga publicada no Netlify; some ao republicar.
+- **Endereço:** **separado (Entrega B)** em rua (`endereco`, preenchido pelo ViaCEP), número
+  (`numero`, obrigatório) e complemento/referência (`complemento`, opcional). Mensagem do
+  WhatsApp: "Endereço: <rua>, <número>" + linha "Complemento" quando preenchido.
+- **Número (11) 93722-3540 e selo "Parque Imperial e Região":** confirmados **corretos no ar**
+  (republicação feita; o desalinhamento antigo era da versão anterior do Netlify).
 - **Frete:** **não existe** regra ainda (Entrega D).
 - **Sanitização:** fraca. Sem anti-fórmula no Sheets, sem honeypot (Entrega C).
 
@@ -86,10 +90,10 @@ automático, o push em `main` já dispara a republicação.
 | Entrega | Descrição | Status |
 |---|---|---|
 | **A** | WhatsApp novo + máscara de telefone | ✅ **Concluída, aprovada e commitada** (`09b75d9`) |
-| **B** | Separar campos de endereço (rua / número / complemento-referência); ViaCEP preenche a rua | Próxima — não iniciada |
+| **B** | Separar campos de endereço (rua / número / complemento-referência); ViaCEP preenche a rua; + scroll/foco ao 1º campo inválido | ✅ **Concluída** (29/29) — aguardando commit |
 | **C** | Segurança proporcional (anti-fórmula Sheets, validação backend, limite de tamanho, honeypot) | Não iniciada |
 | **D** | Frete (regras fixas: grátis / R$6 / R$8; demais "a confirmar") | Não iniciada — **bloqueada** pela lista de bairros/CEPs |
-| **E** | Múltiplos caldos (tipos diferentes) + preço por caldo + total; religar a planilha | Não iniciada |
+| **E** | Múltiplos caldos (tipos diferentes) + preço por caldo + total; religar a planilha (incl. colunas para **número** e **complemento**) | Não iniciada |
 
 ---
 
@@ -97,17 +101,24 @@ automático, o push em `main` já dispara a republicação.
 
 - **[Você]** Definir a lista de **bairros ou faixas de CEP** que contam como "região
   próxima" (R$ 6) e "região média" (R$ 8). Necessário para a Entrega D.
-- **[Processo]** Fazer o push do commit `09b75d9` para o GitHub e republicar no Netlify,
-  para o número novo e o selo correto irem ao ar (commit já feito localmente, falta push).
 - **[Processo]** Decidir se o cálculo de frete por km entra no futuro (exigiria API de
   mapas) ou permanece "a confirmar pelo WhatsApp".
-- **[Você]** Conectar o repositório no **Netlify** para deploy automático ("Add new site →
-  Import from GitHub", selecionar o repo). O `netlify.toml` já define `publish = "frontend"`
-  e sem build — a partir daí, todo push em `main` republica o site automaticamente.
+- **[Entrega E]** Ao religar a planilha, **incluir colunas para `numero` e `complemento`**.
+  Hoje (Entrega B) eles já vão no objeto `data` do front, mas o backend só grava `endereco`.
+
+> ✅ **Resolvido nesta sessão:** push da Parte 1 + Netlify conectado ao GitHub com deploy
+> automático (site no ar em caldodafanny.netlify.app).
+
+### Melhorias de UX pendentes (antes do término do projeto)
+
+- **Campo Número — teclado numérico no mobile:** adicionar `inputmode="numeric"` (igual ao
+  campo CEP) para abrir só números no celular. Ressalva: o campo Número **não tem máscara de
+  propósito** (aceita "123A", "s/n"); o teclado numérico deve ser apenas o padrão, **sem impedir
+  esses casos** (o cliente pode alternar de teclado se precisar de letra). Melhoria de UX.
 
 ---
 
-## 6. Onde paramos (fim da Sessão 1)
+## 6. Onde paramos (Parte 1 concluída e NO AR)
 
 - Projeto subiu para o GitHub (commit inicial \`d8c5516\`).
 - Diagnóstico completo (somente leitura) feito pelo Code.
@@ -116,11 +127,15 @@ automático, o push em `main` já dispara a republicação.
 - Roadmap reordenado: endereço (B) priorizado antes da segurança (C).
 
 - **Parte 1 commitada:** commit `09b75d9` ("Parte 1: novo WhatsApp + máscara de telefone
-  e documentação do projeto"), 9 arquivos, +507/−6. SEM push ainda.
+  e documentação do projeto"), 9 arquivos, +507/−6. já publicada em origin/main (push concluído).
 
-**Próximo passo recomendado:** (opcional) fazer o push para o GitHub e republicar no
-Netlify para o número novo ir ao ar. Na próxima sessão, iniciar a Entrega B (separar os
-campos de endereço, com o ViaCEP preenchendo a rua).
+**Parte 1 publicada e no ar:** deploy automático no Netlify (publish=frontend, sem build),
+site em caldodafanny.netlify.app; número novo e selo confirmados corretos. Commits em
+origin/main: 09b75d9 (Entrega A + docs), 4a65e0e (docs/processo), d772b51 (netlify.toml).
+
+**Entrega B implementada** (local, 29/29 testes): endereço separado em rua / número /
+complemento, com o ViaCEP preenchendo a rua. Aguardando commit (o contexto entra no MESMO
+commit). **Próximo passo:** Entrega C (segurança proporcional).
 
 ---
 
@@ -203,3 +218,16 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
 - **Entrega A implementada, testada e aprovada.**
 - Consolidação da documentação: processo e roadmap absorvidos por este \`contexto.md\`;
   manual de instalação mantido separado.
+- **Parte 1 publicada no ar:** push de 09b75d9, 4a65e0e, d772b51 para origin/main.
+- **Netlify conectado ao GitHub** com deploy automático (publish=frontend, sem build); acesso
+  restrito ao repo Caldo-da-Fanny (menor privilégio). Site: caldodafanny.netlify.app.
+- Sites de teste antigos do Netlify (cdf-teste1, radiant-salmiakki-989226) deletados.
+- Número novo (11) 93722-3540 e selo "Parque Imperial e Região" confirmados corretos no ar.
+- **Entrega B implementada e testada (29/29):** endereço separado em rua (`endereco`, via
+  ViaCEP) / número (`numero`, obrigatório) / complemento (`complemento`, opcional); mensagem
+  do WhatsApp ajustada. Backend não tocado — colunas de número/complemento ficam para a Entrega E.
+- **Correção incorporada à Entrega B:** no teste manual em **mobile** percebeu-se que, ao falhar
+  a validação, a tela **não rolava** até o campo inválido — a pessoa ficava parada no botão sem
+  entender por que o pedido não enviava. Adicionado `focusFirstInvalid()`: ao falhar, rola suave
+  e foca o 1º campo inválido (ordem de documento; cobre campos de texto e grupos de rádio).
+  Sem libs, sem innerHTML. Testes seguem 29/29 (stub de `scrollIntoView` no harness).

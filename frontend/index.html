@@ -278,9 +278,20 @@
     </div>
 
     <div class="field">
-      <label>Endereço completo <span class="req">*</span></label>
-      <textarea name="endereco" placeholder="Rua, número, complemento, ponto de referência" required></textarea>
-      <div class="err">Informe o endereço.</div>
+      <label>Endereço (rua / avenida) <span class="req">*</span></label>
+      <input type="text" name="endereco" placeholder="Preenchido pelo CEP (você pode ajustar)" required>
+      <div class="err">Informe a rua/avenida.</div>
+    </div>
+
+    <div class="field">
+      <label>Número <span class="req">*</span></label>
+      <input type="text" name="numero" placeholder="Ex.: 123 (ou s/n)" required>
+      <div class="err">Informe o número.</div>
+    </div>
+
+    <div class="field">
+      <label>Complemento / referência</label>
+      <input type="text" name="complemento" placeholder="Ex.: ap 12, portão preto, próximo ao terminal">
     </div>
 
     <div class="field">
@@ -465,7 +476,7 @@ function resetCep(){ lastCepQueried=''; Object.keys(autoLast).forEach(k=>autoLas
 
 function validate(){
   let ok=true;
-  ['nome','telefone','endereco'].forEach(n=>{
+  ['nome','telefone','endereco','numero'].forEach(n=>{
     const el=document.querySelector('[name="'+n+'"]');
     if(!el.value.trim()){ el.closest('.field').classList.add('invalid'); ok=false; }
   });
@@ -478,6 +489,19 @@ function validate(){
   if(!document.querySelector('[name="pagamento"]:checked')){ $('#err-pgto').style.display='block'; ok=false; }
   return ok;
 }
+function focusFirstInvalid(){
+  // 1º campo/grupo inválido em ORDEM DE DOCUMENTO (querySelectorAll já vem ordenado).
+  const nodes=document.querySelectorAll('.field.invalid, #err-caldo, #err-bairro, #err-pgto');
+  let target=null;
+  for(const el of nodes){
+    if(el.classList.contains('field')){ target=el; break; }   // input de texto inválido
+    if(el.style.display==='block'){ target=el; break; }        // erro de grupo (radio) visível
+  }
+  if(!target) return;
+  if(typeof target.scrollIntoView==='function') target.scrollIntoView({behavior:'smooth',block:'center'});
+  const f=target.querySelector('input,textarea,select');
+  if(f&&typeof f.focus==='function') f.focus({preventScroll:true});
+}
 function nextPedidoId(){
   let n=parseInt(localStorage.getItem('cf_seq')||'0',10)+1;
   localStorage.setItem('cf_seq',n);
@@ -485,7 +509,7 @@ function nextPedidoId(){
 }
 $('#form').addEventListener('submit', async (e)=>{
   e.preventDefault();
-  if(!validate()) return;
+  if(!validate()){ focusFirstInvalid(); return; }
   const btn=$('#submitBtn'), txt=$('#btnText');
   btn.disabled=true; txt.innerHTML='<span class="spin"></span>';
   const data={
@@ -493,6 +517,8 @@ $('#form').addEventListener('submit', async (e)=>{
     nome:document.querySelector('[name="nome"]').value.trim(),
     telefone:document.querySelector('[name="telefone"]').value.trim(),
     endereco:document.querySelector('[name="endereco"]').value.trim(),
+    numero:document.querySelector('[name="numero"]').value.trim(),
+    complemento:document.querySelector('[name="complemento"]').value.trim(),
     cep:document.querySelector('[name="cep"]').value.replace(/\D/g,''),
     bairro_cep:document.querySelector('[name="bairro_cep"]').value.trim(),
     cidade:document.querySelector('[name="cidade"]').value.trim(),
@@ -517,7 +543,8 @@ $('#form').addEventListener('submit', async (e)=>{
 '————————————\n'+
 '*Cliente:* '+data.nome+'\n'+
 '*Telefone:* '+data.telefone+'\n'+
-'*Endereço:* '+data.endereco+'\n'+
+'*Endereço:* '+data.endereco+', '+data.numero+'\n'+
+(data.complemento?'*Complemento:* '+data.complemento+'\n':'')+
 (data.bairro_cep?'*Bairro:* '+data.bairro_cep+'\n':'')+
 ((data.cidade||data.uf)?'*Cidade/UF:* '+data.cidade+(data.uf?'/'+data.uf:'')+'\n':'')+
 (data.cep?'*CEP:* '+data.cep.slice(0,5)+'-'+data.cep.slice(5)+'\n':'')+
