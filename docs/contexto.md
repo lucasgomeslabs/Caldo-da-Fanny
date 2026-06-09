@@ -29,8 +29,11 @@ Google Apps Script que grava pedidos numa planilha — hoje **desligado**.
 (\`https://github.com/lucascontatoedf-lgtm/Caldo-da-Fanny.git\`), branch \`main\`.
 Existe uma branch local \`backup/pre-hardening\` (não publicada, ponto de restauração).
 
-**Publicação:** site estático no Netlify. ATENÇÃO: o site no ar só reflete o que foi
-commitado + enviado (push) + publicado. Alterações locais não aparecem no ar até esse ciclo.
+**Publicação:** site estático no **Netlify**, conectado ao **GitHub para deploy automático**
+(cada push em `main` republica o site). A **publish directory é `frontend`** (onde está o
+`index.html`), configurada no `netlify.toml` na raiz, sem etapa de build (`command = ""`).
+ATENÇÃO: o site no ar só reflete o que foi commitado + enviado (push); com o deploy
+automático, o push em `main` já dispara a republicação.
 
 ---
 
@@ -98,6 +101,9 @@ commitado + enviado (push) + publicado. Alterações locais não aparecem no ar 
   para o número novo e o selo correto irem ao ar (commit já feito localmente, falta push).
 - **[Processo]** Decidir se o cálculo de frete por km entra no futuro (exigiria API de
   mapas) ou permanece "a confirmar pelo WhatsApp".
+- **[Você]** Conectar o repositório no **Netlify** para deploy automático ("Add new site →
+  Import from GitHub", selecionar o repo). O `netlify.toml` já define `publish = "frontend"`
+  e sem build — a partir daí, todo push em `main` republica o site automaticamente.
 
 ---
 
