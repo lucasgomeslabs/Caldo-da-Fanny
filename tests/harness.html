@@ -3,7 +3,8 @@
 <head><meta charset="UTF-8"><title>harness</title></head>
 <body>
 <!-- DOM mínimo, porém fiel aos seletores que o script usa. O <script> abaixo é
-     um SNAPSHOT do inline de ../frontend/index.html (Bloco 1: CEP + ViaCEP).
+     um SNAPSHOT do inline de ../frontend/index.html (CEP+ViaCEP, máscara,
+     Entrega C honeypot, Entrega D frete por distância).
      Se editar o index.html, atualize este bloco para manter os testes fiéis. -->
 
 <div class="menu" id="menu">
@@ -14,9 +15,16 @@
 <div class="err" id="err-caldo">Escolha um caldo.</div>
 
 <div class="qty"><button type="button" id="minus">-</button><span id="qtyVal">1</span><button type="button" id="plus">+</button></div>
-<span class="val" id="total">R$ 24,90</span>
+
+<div class="total" id="resumo">
+  <div class="rline"><span class="rlbl">Subtotal</span><span class="rval" id="sumSub">R$ 24,90</span></div>
+  <div class="rline"><span class="rlbl">Frete <span class="rinfo" id="freteInfo"></span></span><span class="rval" id="sumFrete">A confirmar</span></div>
+  <div class="rline total-line"><span class="rlbl">Total</span><span class="rval rbig" id="sumTotal">A confirmar</span></div>
+</div>
 
 <form id="form" class="card" novalidate>
+  <!-- Honeypot anti-bot (Entrega C) — espelho do index.html -->
+  <div aria-hidden="true" style="position:absolute;left:-9999px"><label>Não preencha<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
   <div class="field"><label>Nome</label><input type="text" name="nome"><div class="err">Informe seu nome.</div></div>
   <div class="field"><label>Telefone</label><input type="tel" name="telefone"><div class="err">Informe um telefone válido.</div></div>
 
@@ -34,15 +42,6 @@
   <div class="row2">
     <div class="field"><label>Cidade</label><input type="text" name="cidade"></div>
     <div class="field uf"><label>UF</label><input type="text" name="uf" maxlength="2"></div>
-  </div>
-
-  <div class="field">
-    <div class="pill-group" id="bairros">
-      <label class="pill"><input type="radio" name="bairro" value="Parque Imperial" required>Parque Imperial</label>
-      <label class="pill"><input type="radio" name="bairro" value="Região">Região</label>
-      <label class="pill"><input type="radio" name="bairro" value="Outro">Outro</label>
-    </div>
-    <div class="err" id="err-bairro">Escolha a área de entrega.</div>
   </div>
 
   <div class="field">
@@ -79,10 +78,10 @@ const fmt = n => "R$ " + n.toFixed(2).replace(".", ",");
 document.querySelectorAll('#menu .item').forEach(it=>{
   it.addEventListener('click',()=>{
     document.querySelectorAll('#menu .item').forEach(x=>x.classList.remove('sel'));
-    it.classList.add('sel'); $('#err-caldo').style.display='none';
+    it.classList.add('sel'); $('#err-caldo').style.display='none'; recalc();
   });
 });
-['#bairros','#pgto'].forEach(g=>{
+['#pgto'].forEach(g=>{
   document.querySelectorAll(g+' .pill').forEach(p=>{
     p.addEventListener('click',()=>{
       document.querySelectorAll(g+' .pill').forEach(x=>x.classList.remove('sel'));
@@ -90,9 +89,73 @@ document.querySelectorAll('#menu .item').forEach(it=>{
     });
   });
 });
-function updateTotal(){ $('#qtyVal').textContent=qty; $('#total').textContent=fmt(PRICE*qty); }
-$('#plus').onclick=()=>{ if(qty<20){qty++;updateTotal();} };
-$('#minus').onclick=()=>{ if(qty>1){qty--;updateTotal();} };
+
+/* ===================== FRETE por distância (Entrega D) ===================== */
+/* calcFrete(km): tabela em DEGRAUS por distância rodoviária (km) até a base.
+   Limites: km<=3 grátis; (3,4] R$4; (4,5] R$6; (5,6] R$8; km>6 "consultar".
+   IDÊNTICA ao index.html e ao snapshot em tests/backend-tests.mjs. */
+function calcFrete(km){
+  if(typeof km!=='number'||!(km>=0)) return {valor:null,status:'indef'};
+  if(km<=3) return {valor:0,status:'gratis'};
+  if(km<=4) return {valor:4,status:'pago'};
+  if(km<=5) return {valor:6,status:'pago'};
+  if(km<=6) return {valor:8,status:'pago'};
+  return {valor:null,status:'consultar'};
+}
+let freteState={status:'indef',km:null,valor:0};
+function resumoAtual(){
+  const sub=PRICE*qty; const k=freteState.km;
+  let freteTxt, totalNum=null, info='';
+  if(freteState.status==='gratis'){ freteTxt='Grátis'; totalNum=sub; if(k!=null) info='('+k+' km)'; }
+  else if(freteState.status==='pago'){ freteTxt=fmt(freteState.valor); totalNum=sub+freteState.valor; if(k!=null) info='('+k+' km)'; }
+  else if(freteState.status==='consultar'){ freteTxt='Consultar pelo WhatsApp'; info='(> 6 km)'; }
+  else if(freteState.status==='buscando'){ freteTxt='Calculando…'; }
+  else { freteTxt='A confirmar pelo WhatsApp'; }
+  return { subTxt:fmt(sub), freteTxt, info,
+    totalTxt: totalNum!=null?fmt(totalNum):'A confirmar',
+    km: k!=null?String(k):'' };
+}
+function recalc(){
+  const r=resumoAtual();
+  $('#qtyVal').textContent=qty;
+  $('#sumSub').textContent=r.subTxt;
+  $('#sumFrete').textContent=r.freteTxt;
+  $('#freteInfo').textContent=r.info;
+  $('#sumTotal').textContent=r.totalTxt;
+}
+window.fetchDistanciaKm=function(cep){
+  return new Promise((resolve,reject)=>{
+    if(!SHEETS_URL){ reject(new Error('backend desligado')); return; }
+    const cb='__cf_dist_'+Date.now();
+    const s=document.createElement('script'); let done=false;
+    const cleanup=()=>{ try{delete window[cb];}catch(_){ window[cb]=undefined; } if(s.parentNode) s.parentNode.removeChild(s); };
+    const to=setTimeout(()=>{ if(!done){ done=true; cleanup(); reject(new Error('timeout')); } },8000);
+    window[cb]=resp=>{ if(done) return; done=true; clearTimeout(to); cleanup();
+      if(resp&&typeof resp.km==='number') resolve(resp.km); else reject(new Error('sem distancia')); };
+    s.onerror=()=>{ if(!done){ done=true; clearTimeout(to); cleanup(); reject(new Error('falha script')); } };
+    s.src=SHEETS_URL+'?cep='+encodeURIComponent(cep)+'&callback='+cb;
+    document.body.appendChild(s);
+  });
+};
+let lastCepFrete='';
+async function lookupFrete(cep){
+  if(cep===lastCepFrete) return;
+  lastCepFrete=cep;
+  freteState={status:'buscando',km:null,valor:0}; recalc();
+  try{
+    const km=await window.fetchDistanciaKm(cep);
+    const f=calcFrete(km);
+    freteState={status:f.status,km:(typeof km==='number'?km:null),valor:f.valor||0};
+  }catch(err){
+    console.warn('Distância/ORS indisponível:',err);
+    freteState={status:'indef',km:null,valor:0};
+  }
+  recalc();
+}
+function resetFrete(){ lastCepFrete=''; freteState={status:'indef',km:null,valor:0}; }
+/* ========================================================================== */
+$('#plus').onclick=()=>{ if(qty<20){qty++;recalc();} };
+$('#minus').onclick=()=>{ if(qty>1){qty--;recalc();} };
 document.querySelectorAll('#form input,#form textarea').forEach(el=>{
   el.addEventListener('input',()=>el.closest('.field')?.classList.remove('invalid'));
 });
@@ -125,8 +188,6 @@ const autoFields={
 const autoLast={endereco:'',bairro_cep:'',cidade:'',uf:''};
 let lastCepQueried='';
 function setCepStatus(msg,cls){ cepStatus.textContent=msg||''; cepStatus.className='cep-status '+(cls||'muted'); }
-// Só preenche se o campo estiver vazio ou ainda com o valor que o próprio ViaCEP pôs
-// (assim nunca sobrescreve o que o cliente digitou manualmente).
 function setAuto(key,val){
   if(!val) return;
   const el=autoFields[key]; if(!el) return;
@@ -136,7 +197,7 @@ function setAuto(key,val){
   }
 }
 async function lookupCep(cep){
-  if(cep===lastCepQueried) return;       // evita buscas repetidas do mesmo CEP
+  if(cep===lastCepQueried) return;
   lastCepQueried=cep;
   setCepStatus('Buscando endereço…','muted');
   try{
@@ -150,7 +211,6 @@ async function lookupCep(cep){
     setAuto('uf',d.uf);
     setCepStatus('Endereço preenchido pelo CEP ✓ — confira e complete o número.','ok');
   }catch(err){
-    // Falha do ViaCEP (rede/indisponível) NÃO bloqueia o pedido.
     console.warn('ViaCEP falhou:',err);
     setCepStatus('Não foi possível buscar o CEP agora. Preencha o endereço manualmente.','warn');
   }
@@ -159,15 +219,15 @@ cepEl.addEventListener('input',()=>{
   let v=cepEl.value.replace(/\D/g,'').slice(0,8);          // só números, máximo 8
   cepEl.value=v.length>5?v.slice(0,5)+'-'+v.slice(5):v;     // máscara 00000-000
   cepEl.closest('.field')?.classList.remove('invalid');
-  if(v.length<8){ lastCepQueried=''; }
-  if(v.length===8) lookupCep(v);
+  if(v.length<8){ lastCepQueried=''; resetFrete(); recalc(); }
+  if(v.length===8){ lookupCep(v); lookupFrete(v); }
 });
 cepEl.addEventListener('blur',()=>{
   const v=cepEl.value.replace(/\D/g,'');
-  if(v.length===8) lookupCep(v);
+  if(v.length===8){ lookupCep(v); lookupFrete(v); }
 });
 autoFields.uf.addEventListener('input',()=>{ autoFields.uf.value=autoFields.uf.value.toUpperCase(); });
-function resetCep(){ lastCepQueried=''; Object.keys(autoLast).forEach(k=>autoLast[k]=''); setCepStatus('',''); }
+function resetCep(){ lastCepQueried=''; Object.keys(autoLast).forEach(k=>autoLast[k]=''); setCepStatus('',''); resetFrete(); }
 /* ================================================================= */
 
 function validate(){
@@ -181,17 +241,15 @@ function validate(){
   const cepDig=document.querySelector('[name="cep"]').value.replace(/\D/g,'');
   if(cepDig.length!==8){ document.querySelector('[name="cep"]').closest('.field').classList.add('invalid'); ok=false; }
   if(!document.querySelector('[name="caldo"]:checked')){ $('#err-caldo').style.display='block'; ok=false; }
-  if(!document.querySelector('[name="bairro"]:checked')){ $('#err-bairro').style.display='block'; ok=false; }
   if(!document.querySelector('[name="pagamento"]:checked')){ $('#err-pgto').style.display='block'; ok=false; }
   return ok;
 }
 function focusFirstInvalid(){
-  // 1º campo/grupo inválido em ORDEM DE DOCUMENTO (querySelectorAll já vem ordenado).
-  const nodes=document.querySelectorAll('.field.invalid, #err-caldo, #err-bairro, #err-pgto');
+  const nodes=document.querySelectorAll('.field.invalid, #err-caldo, #err-pgto');
   let target=null;
   for(const el of nodes){
-    if(el.classList.contains('field')){ target=el; break; }   // input de texto inválido
-    if(el.style.display==='block'){ target=el; break; }        // erro de grupo (radio) visível
+    if(el.classList.contains('field')){ target=el; break; }
+    if(el.style.display==='block'){ target=el; break; }
   }
   if(!target) return;
   if(typeof target.scrollIntoView==='function') target.scrollIntoView({behavior:'smooth',block:'center'});
@@ -208,6 +266,7 @@ $('#form').addEventListener('submit', async (e)=>{
   if(!validate()){ focusFirstInvalid(); return; }
   const btn=$('#submitBtn'), txt=$('#btnText');
   btn.disabled=true; txt.innerHTML='<span class="spin"></span>';
+  const resumo=resumoAtual();
   const data={
     horario:new Date().toLocaleString('pt-BR'),
     nome:document.querySelector('[name="nome"]').value.trim(),
@@ -219,12 +278,15 @@ $('#form').addEventListener('submit', async (e)=>{
     bairro_cep:document.querySelector('[name="bairro_cep"]').value.trim(),
     cidade:document.querySelector('[name="cidade"]').value.trim(),
     uf:document.querySelector('[name="uf"]').value.trim().toUpperCase(),
-    bairro:document.querySelector('[name="bairro"]:checked').value,
     caldo:document.querySelector('[name="caldo"]:checked').value,
     qtde:qty,
     pagamento:document.querySelector('[name="pagamento"]:checked').value,
     obs:document.querySelector('[name="obs"]').value.trim(),
-    total:fmt(PRICE*qty)
+    km:resumo.km,
+    subtotal:resumo.subTxt,
+    frete:resumo.freteTxt+(resumo.info?' '+resumo.info:''),
+    total:resumo.totalTxt,
+    website:document.querySelector('[name="website"]').value
   };
   const pid=nextPedidoId(); data.pedido_id=pid;
   if(SHEETS_URL){
@@ -244,11 +306,12 @@ $('#form').addEventListener('submit', async (e)=>{
 (data.bairro_cep?'*Bairro:* '+data.bairro_cep+'\n':'')+
 ((data.cidade||data.uf)?'*Cidade/UF:* '+data.cidade+(data.uf?'/'+data.uf:'')+'\n':'')+
 (data.cep?'*CEP:* '+data.cep.slice(0,5)+'-'+data.cep.slice(5)+'\n':'')+
-'*Área de entrega:* '+data.bairro+'\n'+
 '————————————\n'+
 '*Pedido:* '+data.qtde+'x '+data.caldo+'\n'+
 '*Pagamento:* '+data.pagamento+'\n'+
 (data.obs?'*Obs.:* '+data.obs+'\n':'')+
+'*Subtotal:* '+data.subtotal+'\n'+
+'*Frete:* '+data.frete+'\n'+
 '*Total:* '+data.total+'\n'+
 '*Horário:* '+data.horario;
   const wa='https://wa.me/'+WHATSAPP+'?text='+encodeURIComponent(msg);
@@ -259,11 +322,11 @@ $('#form').addEventListener('submit', async (e)=>{
 $('#again').onclick=()=>{
   $('#form').reset();
   document.querySelectorAll('.sel').forEach(x=>x.classList.remove('sel'));
-  qty=1; updateTotal(); resetCep();
+  qty=1; resetCep(); recalc();
   $('#done').style.display='none'; $('#form').style.display='block';
   $('#submitBtn').disabled=false; $('#btnText').textContent='PEÇA PELO WHATSAPP';
 };
-updateTotal();
+recalc();
 </script>
 </body>
 </html>

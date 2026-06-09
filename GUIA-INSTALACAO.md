@@ -30,6 +30,18 @@ mensagem pronta. A planilha é o passo extra que cria a **fila automática**.
 2. Apague o que estiver lá e **cole todo o conteúdo** de `google-apps-script.js`.
 3. Clique no disquete 💾 (Salvar).
 
+### 2.2b Colar a chave do mapa (cálculo automático do frete)
+O frete por distância usa o serviço gratuito **OpenRouteService**. A chave fica
+**guardada no Apps Script** (nunca no site), assim ninguém consegue copiá-la.
+1. Crie uma conta grátis em **openrouteservice.org** e gere uma **API key**.
+2. No Apps Script: engrenagem **⚙ Configurações do projeto → Propriedades do script
+   → Adicionar propriedade do script**.
+3. Em **Propriedade** escreva `ORS_KEY` e em **Valor** cole a sua chave. Salve.
+4. (Opcional) No arquivo, ajuste `BASE_LONLAT` para a coordenada exata do endereço-base.
+
+> Enquanto a chave não estiver colada, o site **funciona normalmente**: ele apenas mostra
+> **"frete a confirmar pelo WhatsApp"** no lugar do valor calculado. Nada trava.
+
 ### 2.3 Publicar como App da Web
 1. No topo, clique em **Implantar → Nova implantação**.
 2. No ícone de engrenagem, escolha o tipo **App da Web**.
@@ -55,7 +67,9 @@ mensagem pronta. A planilha é o passo extra que cria a **fila automática**.
 4. Salve.
 
 Pronto. Agora **cada pedido cai na planilha em ordem de chegada**, com número
-(#001, #002…), horário e status "Recebido". Essa ordem é a sua fila de prioridade.
+(#001, #002…), horário e status "Recebido". A planilha tem **16 colunas**: Pedido, Horário,
+Nome, Telefone, Endereço, Bairro, CEP, Distância(km), Caldo, Qtde, Pagamento, Observações,
+Subtotal, Frete, Total, Status. Essa ordem é a sua fila de prioridade.
 
 ---
 

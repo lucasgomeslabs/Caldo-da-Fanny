@@ -88,7 +88,6 @@ const tests = {
     q(w, '[name="endereco"]').value = 'Rua X';
     q(w, '[name="numero"]').value = '100';
     pick(w, '[name="caldo"][value="Caldo Verde"]');
-    pick(w, '[name="bairro"][value="Parque Imperial"]');
     pick(w, '[name="pagamento"][value="PIX"]');
     submit(w); await tick(); await tick();
     eq(q(w, '#done').style.display, 'block', 'pedido concluído mesmo sem ViaCEP');
@@ -106,7 +105,6 @@ const tests = {
     q(w, '[name="endereco"]').value = 'Rua Y';
     q(w, '[name="numero"]').value = '50';
     pick(w, '[name="caldo"][value="Caldo de Mandioca"]');
-    pick(w, '[name="bairro"][value="Região"]');
     pick(w, '[name="pagamento"][value="Dinheiro"]');
     submit(w); await tick(); await tick();
     eq(q(w, '#done').style.display, 'block', 'pedido concluído apesar da falha de rede');
@@ -119,7 +117,6 @@ const tests = {
     q(w, '[name="endereco"]').value = 'Rua Z';
     q(w, '[name="numero"]').value = '1';
     pick(w, '[name="caldo"][value="Caldo Verde"]');
-    pick(w, '[name="bairro"][value="Parque Imperial"]');
     pick(w, '[name="pagamento"][value="PIX"]');
     const cep = q(w, '[name="cep"]');
     cep.value = '12345'; cep.dispatchEvent(new w.Event('input', { bubbles: true }));   // 5 dígitos
@@ -134,13 +131,13 @@ const tests = {
 
   async 'T7 — mensagem completa e invariáveis (WhatsApp/preço intactos)'() {
     const w = makeDom(okData);
-    await typeCep(w, '01001000');
+    w.fetchDistanciaKm = () => Promise.resolve(2);   // distância mockada (2 km = frete grátis)
+    await typeCep(w, '01001000'); await tick();
     q(w, '[name="nome"]').value = 'Maria Silva';
     q(w, '[name="telefone"]').value = '11999990000';
     q(w, '[name="endereco"]').value = 'Praça da Sé';
     q(w, '[name="numero"]').value = '200';
     pick(w, '[name="caldo"][value="Caldo Verde"]');
-    pick(w, '[name="bairro"][value="Parque Imperial"]');
     pick(w, '[name="pagamento"][value="PIX"]');
     submit(w); await tick(); await tick();
     const href = q(w, '#waLink').href;
@@ -150,9 +147,39 @@ const tests = {
     ok(msg.includes('*CEP:* 01001-000'), 'mensagem com CEP formatado');
     ok(msg.includes('*Cidade/UF:* São Paulo/SP'), 'mensagem com Cidade/UF');
     ok(msg.includes('*Bairro:* Sé'), 'mensagem com bairro do CEP');
-    ok(msg.includes('*Área de entrega:* Parque Imperial'), 'mensagem com área de entrega (pills)');
+    ok(msg.includes('*Subtotal:* R$ 24,90'), 'mensagem com Subtotal');
+    ok(msg.includes('*Frete:* Grátis (2 km)'), 'mensagem com Frete (grátis, 2 km)');
     ok(msg.includes('*Total:* R$ 24,90'), 'preço inalterado (R$ 24,90)');
     ok(/^#\d{3}$/.test(q(w, '#donePid').textContent), 'id do pedido no formato #NNN');
+  },
+
+  async 'T8 — frete por distância (tabela em degraus)'() {
+    async function freteCase(km){
+      const w = makeDom(okData);
+      w.fetchDistanciaKm = () => Promise.resolve(km);
+      await typeCep(w, '01001000'); await tick();
+      return { frete: q(w, '#sumFrete').textContent, total: q(w, '#sumTotal').textContent };
+    }
+    let r;
+    r = await freteCase(2);   eq(r.frete, 'Grátis', '2 km = Grátis'); eq(r.total, 'R$ 24,90', '2 km: total = subtotal');
+    r = await freteCase(3);   eq(r.frete, 'Grátis', '3 km = Grátis (limite inferior)');
+    r = await freteCase(3.5); eq(r.frete, 'R$ 4,00', '3,5 km = R$ 4,00'); eq(r.total, 'R$ 28,90', '3,5 km: total = subtotal + 4');
+    r = await freteCase(4.5); eq(r.frete, 'R$ 6,00', '4,5 km = R$ 6,00');
+    r = await freteCase(5.5); eq(r.frete, 'R$ 8,00', '5,5 km = R$ 8,00');
+    r = await freteCase(7);   eq(r.frete, 'Consultar pelo WhatsApp', '7 km = consultar'); eq(r.total, 'A confirmar', '7 km: total a confirmar');
+  },
+
+  async 'T9 — falha do ORS não bloqueia (frete a confirmar)'() {
+    const w = makeDom(okData);
+    w.fetchDistanciaKm = () => Promise.reject(new Error('ors down'));
+    await typeCep(w, '01001000'); await tick();
+    eq(q(w, '#sumFrete').textContent, 'A confirmar pelo WhatsApp', 'frete a confirmar quando o ORS falha');
+    q(w, '[name="nome"]').value = 'Ana'; q(w, '[name="telefone"]').value = '11999998888';
+    q(w, '[name="endereco"]').value = 'Rua X'; q(w, '[name="numero"]').value = '10';
+    pick(w, '[name="caldo"][value="Caldo Verde"]'); pick(w, '[name="pagamento"][value="PIX"]');
+    submit(w); await tick(); await tick();
+    eq(q(w, '#done').style.display, 'block', 'pedido finaliza apesar da falha do ORS');
+    ok(decodeURIComponent(q(w, '#waLink').href).includes('*Frete:* A confirmar pelo WhatsApp'), 'mensagem com frete a confirmar');
   },
 };
 

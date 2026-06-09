@@ -6,8 +6,9 @@
 
 - **Última atualização:** Sessão 1
 - **Sessão atual:** 1
-- **Status geral:** **Parte 1 no ar.** **Entrega B concluída e commitada** (`27c2caa`, 29/29).
-  Próxima: **Entrega C** (segurança do backend), depois **D** (frete por km via OpenRouteService).
+- **Status geral:** **Parte 1 no ar.** **Entregas C (segurança) e D (frete por distância + visual)
+  IMPLEMENTADAS localmente** (front 42/42 + backend 43/43), **aguardando commit**. Ativação real do
+  frete depende da chave ORS + redeploy (Entrega E). Próxima após o commit: **Entrega E**.
 
 ---
 
@@ -59,7 +60,8 @@ resta só o `caldodafanny`.
   WhatsApp: "Endereço: <rua>, <número>" + linha "Complemento" quando preenchido.
 - **Número (11) 93722-3540 e selo "Parque Imperial e Região":** confirmados **corretos no ar**
   (republicação feita; o desalinhamento antigo era da versão anterior do Netlify).
-- **Frete:** regra **definida** (por distância em km — ver §3), ainda **não implementada** (Entrega D).
+- **Frete:** **implementado** (Entrega D) — degraus por distância (ORS via JSONP no backend), com
+  **fallback não-bloqueante** ("a confirmar pelo WhatsApp"). Valor real só após a chave ORS + redeploy.
 - **Sanitização:** fraca. Sem anti-fórmula no Sheets, sem honeypot (Entrega C).
 
 ---
@@ -83,6 +85,16 @@ resta só o `caldodafanny`.
   → devolve a distância. A chave fica guardada no backend, invisível no código público.
 - **Ordem C antes de D:** a Entrega C (segurança proporcional do backend) vem **antes** da D (frete),
   pois compartilham o backend; a C prepara o terreno (validação no backend e chamada externa segura).
+- **Remoção do campo "Área de entrega" (Entrega D — FEITO):** o seletor manual `bairro`
+  (Parque Imperial / Região / Outro) foi **removido**; o **CEP** é a única fonte da área.
+  Mexeu em: HTML, `validate()`, `focusFirstInvalid()`, mensagem do WhatsApp e testes.
+- **Abordagem km-digitado / frete linear (R$1/km): DESCARTADA antes de implementar.** Numa sessão
+  de planejamento avulsa cogitou-se um campo de km digitado pelo cliente e frete linear; foi
+  rejeitada (não confiável) em favor da **distância automática (ORS) + tabela em degraus**.
+- **Leitura da distância no front via JSONP:** `doGet?cep=...&callback=...` no backend; a chave ORS
+  fica em **Script Properties** (CORS impede `fetch` legível cross-origin do Apps Script).
+- **Honeypot (Entrega C): só no backend.** Não entra em `validate()` nem é `required`; o backend
+  ignora o pedido (finge sucesso) quando o campo isca vem preenchido.
 - **Campos de endereço:** separar em Endereço (rua/avenida) / Número / Complemento-
   referência (ex.: "próximo ao terminal", "portão preto"). Priorizado ANTES da segurança.
 - **Documentação:** consolidada em \`prompt.md\`, \`contexto.md\`, \`code.md\`, \`README.md\`.
@@ -101,18 +113,22 @@ resta só o `caldodafanny`.
 |---|---|---|
 | **A** | WhatsApp novo + máscara de telefone | ✅ **Concluída, aprovada e commitada** (`09b75d9`) |
 | **B** | Separar campos de endereço (rua / número / complemento-referência); ViaCEP preenche a rua; + scroll/foco ao 1º campo inválido | ✅ **Concluída e commitada** (`27c2caa`, 29/29) |
-| **C** | Segurança proporcional (anti-fórmula Sheets, validação backend, limite de tamanho, honeypot) | Não iniciada |
-| **D** | Frete **por distância em km** (≤3 grátis / 3–4 R$4 / 4–5 R$6 / 5–6 R$8 / >6 consultar no WhatsApp); distância via **OpenRouteService** chamada pelo backend (chave protegida) | Não iniciada — **depende da Entrega C** (mesmo backend) |
+| **C** | Segurança proporcional (anti-fórmula Sheets, validação/sanitização backend, limite de tamanho, honeypot) | ✅ **Implementada (local), aguardando commit** — 43/43 testes puros |
+| **D** | Frete **por distância em km** (≤3 grátis / 3–4 R$4 / 4–5 R$6 / 5–6 R$8 / >6 consultar); distância via **OpenRouteService** (JSONP, chave protegida); **campo "Área de entrega" removido**; visual (card translúcido, logo, fundo→asset) | ✅ **Implementada (local), aguardando commit** — 42/42 testes. **Ativação real:** chave ORS + redeploy (Entrega E) |
 | **E** | Múltiplos caldos (tipos diferentes) + preço por caldo + total; religar a planilha (incl. colunas para **número** e **complemento**) | Não iniciada |
 
 ---
 
 ## 5. Pendências (o que falta / depende de decisão)
 
-- **[Você]** Criar conta gratuita na **OpenRouteService** e gerar a **chave de API** (ficará
-  guardada no backend, nunca no front) — necessária para a Entrega D (frete por km).
-- **[Entrega E]** Ao religar a planilha, **incluir colunas para `numero` e `complemento`**.
-  Hoje (Entrega B) eles já vão no objeto `data` do front, mas o backend só grava `endereco`.
+- **[Você]** Criar conta gratuita na **OpenRouteService** e gerar a **chave de API** (vai em
+  **Script Properties** do Apps Script, nunca no front). **Continua ativa**, mas agora bloqueia
+  apenas a **ponta real** do frete: o código já está pronto e cai no fallback "a confirmar" até a
+  chave + redeploy.
+- **[Entrega E]** Religar a planilha: colar `SHEETS_URL` no front, conferir o cabeçalho de
+  **16 colunas (A1:P1)** já no backend (incl. CEP, Distância(km), Subtotal, Frete). As colunas de
+  `numero`/`complemento` (Entrega B) seguem fora do appendRow — decidir se entram aqui.
+  *(Resolvido em D: a coluna "Bairro" passa a ser alimentada pelo `bairro_cep` do ViaCEP.)*
 
 > ✅ **Resolvido nesta sessão:** push da Parte 1 + Netlify conectado ao GitHub com deploy
 > automático (site no ar em caldodafanny.netlify.app).
@@ -144,18 +160,18 @@ origin/main: 09b75d9 (Entrega A + docs), 4a65e0e (docs/processo), d772b51 (netli
 **Entrega B concluída e commitada** (`27c2caa`, 29/29 testes): endereço separado em rua /
 número / complemento (ViaCEP preenche a rua) + scroll/foco ao 1º campo inválido.
 
-**Entrega C — em ANÁLISE (plano apresentado, NÃO implementada).** Escopo: anti-fórmula no
-Sheets, validação/sanitização no backend, limite de tamanho e honeypot. Pendem 3 decisões suas:
-(a) enums estritos de caldo/pagamento/bairro ou só tipo/tamanho; (b) anti-fórmula por apóstrofo
-com plano B `setNumberFormat("@")`; (c) testes via `tests/backend-tests.mjs` (snapshot das
-funções puras). **Nenhum código tocado na C ainda.**
+**Entregas C e D IMPLEMENTADAS localmente (aguardando commit):**
+- **C (segurança):** validação/sanitização no backend, anti-fórmula (apóstrofo; plano B
+  `setNumberFormat("@")` documentado), limite de tamanho, honeypot (só no backend). Testes
+  puros em `tests/backend-tests.mjs` (43/43).
+- **D (frete + visual):** campo "Área de entrega" removido; frete em degraus por distância (ORS
+  via JSONP), resumo Subtotal/Frete/Total, mensagem do WhatsApp atualizada, **fallback
+  não-bloqueante**; visual (card translúcido, logo reenquadrada, fundo extraído para
+  `frontend/assets/bg-cozinha.jpg`, HTML de ~300 KB → ~28 KB). Front 42/42.
+- **Ativação real do frete** (chave ORS em Script Properties + colar `SHEETS_URL` + redeploy)
+  concentrada na Entrega E.
 
-**Também decidido nesta sessão (só documentado):** frete por distância em km + endereço-base
-(Rua Açucena, 175), arquitetura da Entrega D com OpenRouteService (chave no backend) e a visão
-futura de identificação de cliente + fidelidade (§8b, fora do roadmap atual).
-
-**Próximo passo:** sua aprovação do plano da **Entrega C** para implementar (backend + honeypot
-no front + testes); depois a **D** (frete por km; ordem C→D porque compartilham o backend).
+**Próximo passo:** revisar os diffs e commitar as Entregas C+D; depois iniciar a Entrega E.
 
 ---
 
@@ -284,3 +300,15 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
   plano B, testes por snapshot). Aguardando aprovação.
 - **Visão futura registrada (§8b):** identificação de cliente + fidelidade — fora do roadmap atual
   (alertas de arquitetura e LGPD anotados).
+- **Entrega C implementada (local):** funções puras `antiFormula`/`cleanText`/`isBot`/`validateOrder`
+  + portão no `doPost`; honeypot só no backend; enum estrito só de `pagamento`. 43/43 testes puros.
+- **Entrega D implementada (local):** frete em degraus por distância via **ORS (JSONP)**; campo de
+  área manual **removido** (CEP é a fonte); resumo Subtotal/Frete/Total + mensagem; **fallback
+  não-bloqueante** (CEP inválido / ORS fora / backend off / >6 km). Front 42/42 (inclui 2/3/3,5/4,5/5,5/7 km).
+- **Visual (D):** card translúcido (`backdrop-filter`), logo reenquadrada, fundo migrado de base64
+  para `frontend/assets/bg-cozinha.jpg` (index.html 300 KB → 28 KB).
+- **Backend (D):** planilha agora com **16 colunas (A1:P1)** — +CEP, +Distância(km), +Subtotal, +Frete;
+  "Bairro" = `bairro_cep` do ViaCEP. ORS em Script Properties; `BASE_LONLAT` aproximado (ajustar).
+- **Descartado antes de implementar:** km digitado pelo cliente + frete linear R$1/km (sessão de
+  planejamento avulsa) — substituído por distância automática + degraus.
+- **Pendente p/ Entrega E:** chave ORS + colar `SHEETS_URL` + redeploy = ativa o frete real e a planilha.
