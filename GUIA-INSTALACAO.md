@@ -14,7 +14,7 @@ mensagem pronta. A planilha é o passo extra que cria a **fila automática**.
 
 1. Abra o `index.html` no celular ou computador.
 2. Confira o número do WhatsApp: abra o arquivo, procure `const WHATSAPP =` e
-   confirme que está `5511973457136` (DDI 55 + DDD + número, só dígitos).
+   confirme que está `5511937223540` (DDI 55 + DDD + número, só dígitos).
 3. Faça um pedido de teste → ele deve abrir o WhatsApp com tudo preenchido. ✅
 
 ---

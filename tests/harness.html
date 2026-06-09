@@ -65,7 +65,7 @@
 
 <script>
 /* ===================== CONFIGURAÇÃO ===================== */
-const WHATSAPP = "5511973457136";
+const WHATSAPP = "5511937223540";
 const SHEETS_URL = ""; // cole aqui a URL .../exec do Apps Script
 /* ======================================================= */
 
@@ -94,6 +94,22 @@ $('#minus').onclick=()=>{ if(qty>1){qty--;updateTotal();} };
 document.querySelectorAll('#form input,#form textarea').forEach(el=>{
   el.addEventListener('input',()=>el.closest('.field')?.classList.remove('invalid'));
 });
+
+/* ===================== Máscara de telefone ===================== */
+const telEl=document.querySelector('[name="telefone"]');
+function maskTelefone(v){
+  v=v.replace(/\D/g,'').slice(0,11);              // só dígitos, máx 11
+  if(v.length===0) return '';
+  if(v.length<=2)  return '('+v;                                       // (11
+  if(v.length<=6)  return '('+v.slice(0,2)+') '+v.slice(2);            // (11) 9372
+  if(v.length<=10) return '('+v.slice(0,2)+') '+v.slice(2,6)+'-'+v.slice(6);  // (11) 3722-3540
+  return '('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);            // (11) 93722-3540
+}
+telEl.addEventListener('input',()=>{
+  telEl.value=maskTelefone(telEl.value);          // sem innerHTML — só .value
+  telEl.closest('.field')?.classList.remove('invalid');
+});
+/* ============================================================== */
 
 /* ===================== CEP + ViaCEP (Bloco 1) ===================== */
 const cepEl=document.querySelector('[name="cep"]');

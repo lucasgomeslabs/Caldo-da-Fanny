@@ -140,7 +140,7 @@ const tests = {
     submit(w); await tick(); await tick();
     const href = q(w, '#waLink').href;
     const msg = decodeURIComponent(href);
-    ok(href.startsWith('https://wa.me/5511973457136?text='), 'número do WhatsApp inalterado');
+    ok(href.startsWith('https://wa.me/5511937223540?text='), 'número do WhatsApp inalterado');
     ok(msg.includes('*CEP:* 01001-000'), 'mensagem com CEP formatado');
     ok(msg.includes('*Cidade/UF:* São Paulo/SP'), 'mensagem com Cidade/UF');
     ok(msg.includes('*Bairro:* Sé'), 'mensagem com bairro do CEP');

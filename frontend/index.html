@@ -348,9 +348,9 @@
 
   <!-- CONTATO -->
   <div class="contact">
-    <a class="wa" href="https://wa.me/5511973457136" target="_blank" rel="noopener">
+    <a class="wa" href="https://wa.me/5511937223540" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1012 2zm5.8 14.2c-.2.7-1.4 1.3-2 1.4-.5.1-1.2.1-1.9-.1-.4-.1-1-.3-1.7-.6-3-1.3-4.9-4.3-5-4.5-.2-.2-1.3-1.7-1.3-3.2s.8-2.3 1-2.6c.3-.3.6-.4.8-.4h.6c.2 0 .4 0 .7.5l.9 2.2c.1.2.1.4 0 .6l-.4.6-.4.4c-.1.1-.3.3-.1.6.1.3.6 1.1 1.4 1.7 1 .9 1.8 1.2 2.1 1.3.3.1.5.1.7-.1l.8-1c.2-.3.4-.2.7-.1l2 1c.3.1.5.2.6.3.1.2.1.8-.2 1.5z"/></svg>
-      11 97345-7136
+      (11) 93722-3540
     </a>
     <div class="loc">📍 Entregamos em: <b>PARQUE IMPERIAL E REGIÃO</b></div>
   </div>
@@ -360,7 +360,7 @@
 
 <script>
 /* ===================== CONFIGURAÇÃO ===================== */
-const WHATSAPP = "5511973457136";
+const WHATSAPP = "5511937223540";
 const SHEETS_URL = ""; // cole aqui a URL .../exec do Apps Script
 /* ======================================================= */
 
@@ -389,6 +389,22 @@ $('#minus').onclick=()=>{ if(qty>1){qty--;updateTotal();} };
 document.querySelectorAll('#form input,#form textarea').forEach(el=>{
   el.addEventListener('input',()=>el.closest('.field')?.classList.remove('invalid'));
 });
+
+/* ===================== Máscara de telefone ===================== */
+const telEl=document.querySelector('[name="telefone"]');
+function maskTelefone(v){
+  v=v.replace(/\D/g,'').slice(0,11);              // só dígitos, máx 11
+  if(v.length===0) return '';
+  if(v.length<=2)  return '('+v;                                       // (11
+  if(v.length<=6)  return '('+v.slice(0,2)+') '+v.slice(2);            // (11) 9372
+  if(v.length<=10) return '('+v.slice(0,2)+') '+v.slice(2,6)+'-'+v.slice(6);  // (11) 3722-3540
+  return '('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);            // (11) 93722-3540
+}
+telEl.addEventListener('input',()=>{
+  telEl.value=maskTelefone(telEl.value);          // sem innerHTML — só .value
+  telEl.closest('.field')?.classList.remove('invalid');
+});
+/* ============================================================== */
 
 /* ===================== CEP + ViaCEP (Bloco 1) ===================== */
 const cepEl=document.querySelector('[name="cep"]');
