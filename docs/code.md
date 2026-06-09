@@ -85,6 +85,13 @@ resposta pelo tipo de tarefa:
 
 ## Encerramento de sessão
 
-Antes de encerrar: atualize o \`contexto.md\` (sessão, status das entregas, onde paramos,
-pendências, registro de sessões), mostre o diff, e prepare a proposta de commit do fim de
-sessão. Só commite após aprovação.
+**REGRA OBRIGATÓRIA — ATUALIZAR O CONTEXTO ANTES DO COMMIT.**
+Nenhum commit acontece sem que o `docs/contexto.md` já reflita o estado final da sessão.
+A ordem é sempre: (1) atualizar `docs/contexto.md` → (2) revisar → (3) propor commit →
+(4) commitar após "ok". O `contexto.md` entra no MESMO commit, já atualizado — nunca depois.
+
+Antes de encerrar: atualize o `docs/contexto.md` (sessão, status das entregas, onde
+paramos, pendências, registro de sessões), mostre o diff, e prepare a proposta de commit
+do fim de sessão. O hash do commit recém-feito é anotado no contexto no encerramento,
+mirando a PRÓXIMA sessão (um arquivo não contém o hash do próprio commit). Só commite
+após aprovação.

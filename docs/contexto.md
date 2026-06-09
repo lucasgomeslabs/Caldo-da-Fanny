@@ -6,7 +6,7 @@
 
 - **Última atualização:** Sessão 1
 - **Sessão atual:** 1
-- **Status geral:** Entrega A concluída e aprovada; aguardando commit da Parte 1.
+- **Status geral:** Parte 1 commitada (Entrega A + documentação). Próxima: Entrega B (campos de endereço).
 
 ---
 
@@ -82,7 +82,7 @@ commitado + enviado (push) + publicado. Alterações locais não aparecem no ar 
 
 | Entrega | Descrição | Status |
 |---|---|---|
-| **A** | WhatsApp novo + máscara de telefone | ✅ **Concluída e aprovada** (aguardando commit) |
+| **A** | WhatsApp novo + máscara de telefone | ✅ **Concluída, aprovada e commitada** (`09b75d9`) |
 | **B** | Separar campos de endereço (rua / número / complemento-referência); ViaCEP preenche a rua | Próxima — não iniciada |
 | **C** | Segurança proporcional (anti-fórmula Sheets, validação backend, limite de tamanho, honeypot) | Não iniciada |
 | **D** | Frete (regras fixas: grátis / R$6 / R$8; demais "a confirmar") | Não iniciada — **bloqueada** pela lista de bairros/CEPs |
@@ -94,8 +94,8 @@ commitado + enviado (push) + publicado. Alterações locais não aparecem no ar 
 
 - **[Você]** Definir a lista de **bairros ou faixas de CEP** que contam como "região
   próxima" (R$ 6) e "região média" (R$ 8). Necessário para a Entrega D.
-- **[Processo]** Republicar o site no Netlify após o commit (push) para o número novo e o
-  selo correto irem ao ar.
+- **[Processo]** Fazer o push do commit `09b75d9` para o GitHub e republicar no Netlify,
+  para o número novo e o selo correto irem ao ar (commit já feito localmente, falta push).
 - **[Processo]** Decidir se o cálculo de frete por km entra no futuro (exigiria API de
   mapas) ou permanece "a confirmar pelo WhatsApp".
 
@@ -109,9 +109,12 @@ commitado + enviado (push) + publicado. Alterações locais não aparecem no ar 
 - Documentação consolidada em 4 arquivos + guia de instalação separado.
 - Roadmap reordenado: endereço (B) priorizado antes da segurança (C).
 
-**Próximo passo recomendado:** commitar a Parte 1 (Entrega A + documentação + remoção do
-GUIA-PROCESSO.md), depois republicar no Netlify. Na próxima sessão, iniciar a Entrega B
-(campos de endereço).
+- **Parte 1 commitada:** commit `09b75d9` ("Parte 1: novo WhatsApp + máscara de telefone
+  e documentação do projeto"), 9 arquivos, +507/−6. SEM push ainda.
+
+**Próximo passo recomendado:** (opcional) fazer o push para o GitHub e republicar no
+Netlify para o número novo ir ao ar. Na próxima sessão, iniciar a Entrega B (separar os
+campos de endereço, com o ViaCEP preenchendo a rua).
 
 ---
 
@@ -129,6 +132,12 @@ GUIA-PROCESSO.md), depois republicar no Netlify. Na próxima sessão, iniciar a 
 (automáticos + manual no navegador) → 6. **Proposta de commit** → 7. **Commit** (só após "ok").
 
 > Regra de ouro: **nunca executar múltiplas mudanças grandes de uma vez.**
+>
+> **Regra obrigatória: ATUALIZAR O CONTEXTO ANTES DO COMMIT.** Nenhum commit ocorre sem
+> que este arquivo já reflita o estado final da sessão. Ordem: (1) atualizar contexto →
+> (2) revisar → (3) propor commit → (4) commitar após "ok". O contexto entra no MESMO
+> commit, já atualizado — nunca depois. O hash do commit é anotado no encerramento,
+> mirando a próxima sessão.
 
 ### Regras absolutas
 - Nunca inventar arquivos, rotas, bibliotecas ou estrutura.
