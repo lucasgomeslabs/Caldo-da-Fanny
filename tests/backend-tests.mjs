@@ -51,6 +51,16 @@ function validateOrder(d) {
   }
   return { ok: true };
 }
+function montarEndereco_(via) {
+  const partes = [];
+  const campos = ["logradouro", "bairro", "localidade", "uf"];
+  for (let i = 0; i < campos.length; i++) {
+    const val = String((via && via[campos[i]] != null) ? via[campos[i]] : "").trim();
+    if (val) partes.push(val);
+  }
+  partes.push("Brasil");
+  return partes.join(", ");
+}
 /* calcFrete(km): tabela em DEGRAUS por distância (km) — IDÊNTICA ao frontend/index.html.
    Limites: km<=3 grátis; (3,4] R$4; (4,5] R$6; (5,6] R$8; km>6 "consultar".
    Ex.: 3,0=grátis · 4,0=R$4 (faixa 3–4) · 5,5=R$8 · 7=consultar. */
@@ -143,6 +153,19 @@ const tests = {
     eq(calcFrete(7).status, 'consultar', '7 km (>6) = consultar');
     eq(calcFrete(0).status, 'gratis', '0 km = gratis');
     eq(calcFrete('x').status, 'indef', 'nao-numero = indef (fallback)');
+  },
+  'B10 — montarEndereco_: texto do ViaCEP (campos nao-vazios + Brasil)'() {
+    eq(montarEndereco_({ logradouro: 'Rua Açucena', bairro: 'Parque Imperial', localidade: 'Barueri', uf: 'SP' }),
+      'Rua Açucena, Parque Imperial, Barueri, SP, Brasil', 'todos os campos presentes');
+    eq(montarEndereco_({ logradouro: '', bairro: '', localidade: 'Barueri', uf: 'SP' }),
+      'Barueri, SP, Brasil', 'CEP generico (logradouro/bairro vazios) -> cidade, UF, Brasil');
+    eq(montarEndereco_({ logradouro: '', bairro: '', localidade: '', uf: 'SP' }),
+      'SP, Brasil', 'so uf -> "SP, Brasil" (nunca vazio nem so "Brasil" sem cidade)');
+    eq(montarEndereco_({}), 'Brasil', 'tudo vazio -> "Brasil" (enderecoDoCep_ rejeita esse caso)');
+    ok(montarEndereco_({ uf: 'SP' }) !== '' && montarEndereco_({ uf: 'SP' }) !== 'Brasil',
+      'com algum campo, nunca retorna vazio nem so "Brasil"');
+    eq(montarEndereco_({ logradouro: '  Av. Teste  ', localidade: 'X', uf: 'sp' }),
+      'Av. Teste, X, sp, Brasil', 'faz trim dos campos');
   }
 };
 

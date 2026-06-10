@@ -6,9 +6,10 @@
 
 - **Última atualização:** Sessão 2
 - **Sessão atual:** 2
-- **Status geral:** **Parte 1 no ar.** **Entregas C (segurança) e D (frete por distância + visual)
-  commitadas em `8348624` e publicadas** (origin/main; deploy automático no Netlify) — front 42/42 +
-  backend 43/43. Ativação real do frete depende da chave ORS + redeploy (Entrega E). Próxima: **Entrega E**.
+- **Status geral:** **Parte 1 no ar. Entregas C+D em `8348624`, no ar.** **Frete reimplementado
+  (Parte 3, no working tree): o front envia o endereço do ViaCEP ao backend, que geocodifica na ORS
+  (endereço→ORS, não CEP puro)** — implementado e testado (backend 49/49 + front 42/42). **Ativação
+  real pendente:** redeploy do backend (Versão 5) + colar `SHEETS_URL` + smoke test por curl.
 
 ---
 
@@ -60,8 +61,11 @@ resta só o `caldodafanny`.
   WhatsApp: "Endereço: <rua>, <número>" + linha "Complemento" quando preenchido.
 - **Número (11) 93722-3540 e selo "Parque Imperial e Região":** confirmados **corretos no ar**
   (republicação feita; o desalinhamento antigo era da versão anterior do Netlify).
-- **Frete:** **implementado** (Entrega D) — degraus por distância (ORS via JSONP no backend), com
-  **fallback não-bloqueante** ("a confirmar pelo WhatsApp"). Valor real só após a chave ORS + redeploy.
+- **Frete:** **implementado** — degraus por distância via ORS, com **fallback não-bloqueante**
+  ("a confirmar pelo WhatsApp"). **Geocodificação por ENDEREÇO** (não CEP puro): o front obtém o
+  endereço no ViaCEP (navegador) e **envia os 4 campos** (logradouro/bairro/localidade/uf) ao
+  backend via JSONP; o backend geocodifica o endereço na ORS. Valor real só após redeploy (V5) +
+  colar `SHEETS_URL`.
 - **Sanitização:** fraca. Sem anti-fórmula no Sheets, sem honeypot (Entrega C).
 
 ---
@@ -91,8 +95,17 @@ resta só o `caldodafanny`.
 - **Abordagem km-digitado / frete linear (R$1/km): DESCARTADA antes de implementar.** Numa sessão
   de planejamento avulsa cogitou-se um campo de km digitado pelo cliente e frete linear; foi
   rejeitada (não confiável) em favor da **distância automática (ORS) + tabela em degraus**.
-- **Leitura da distância no front via JSONP:** `doGet?cep=...&callback=...` no backend; a chave ORS
-  fica em **Script Properties** (CORS impede `fetch` legível cross-origin do Apps Script).
+- **Leitura da distância no front via JSONP:** `doGet?cep=...&logradouro=...&bairro=...&localidade=...&uf=...&callback=...`
+  no backend; a chave ORS fica em **Script Properties** (CORS impede `fetch` legível cross-origin do Apps Script).
+- **Geocodificação por ENDEREÇO (Parte 3 — pivô):** o CEP puro na ORS retorna 0 resultados; e a opção
+  "backend chama o ViaCEP" foi **inviabilizada** (o ViaCEP **bloqueia os IPs do Google/Apps Script** —
+  exceção de transporte "Endereço não disponível"). Solução: o **front** (que acessa o ViaCEP do
+  navegador) **envia os 4 campos do endereço** ao backend, que geocodifica na ORS. Reusa `montarEndereco_`
+  (pura, testada). Backend: `enderecoDoCep_` removida; `geocodeCep_` → `geocodeEndereco_`; temporárias
+  `_autorizar`/`_diag` removidas.
+- **`BASE_LONLAT` corrigido:** de `[-46.8470, -23.5180]` (aproximado, ~6 km fora) para
+  `[-46.806196, -23.477291]` (R. Açucena, 175 — geocodificado e confirmado no mapa). `ORS_KEY` em
+  Script Properties (confirmada); permissão `script.external_request` concedida no Apps Script.
 - **Honeypot (Entrega C): só no backend.** Não entra em `validate()` nem é `required`; o backend
   ignora o pedido (finge sucesso) quando o campo isca vem preenchido.
 - **Campos de endereço:** separar em Endereço (rua/avenida) / Número / Complemento-
@@ -114,17 +127,16 @@ resta só o `caldodafanny`.
 | **A** | WhatsApp novo + máscara de telefone | ✅ **Concluída, aprovada e commitada** (`09b75d9`) |
 | **B** | Separar campos de endereço (rua / número / complemento-referência); ViaCEP preenche a rua; + scroll/foco ao 1º campo inválido | ✅ **Concluída e commitada** (`27c2caa`, 29/29) |
 | **C** | Segurança proporcional (anti-fórmula Sheets, validação/sanitização backend, limite de tamanho, honeypot) | ✅ **Commitada (`8348624`) e publicada** (origin/main; deploy automático no Netlify) — 43/43 testes puros |
-| **D** | Frete **por distância em km** (≤3 grátis / 3–4 R$4 / 4–5 R$6 / 5–6 R$8 / >6 consultar); distância via **OpenRouteService** (JSONP, chave protegida); **campo "Área de entrega" removido**; visual (card translúcido, logo, fundo→asset) | ✅ **Commitada (`8348624`) e publicada** (origin/main; deploy automático no Netlify) — 42/42 testes. **Ativação real:** chave ORS + redeploy (Entrega E) |
+| **D** | Frete **por distância em km** (≤3 grátis / 3–4 R$4 / 4–5 R$6 / 5–6 R$8 / >6 consultar); distância via **OpenRouteService** (JSONP, chave protegida); **campo "Área de entrega" removido**; visual (card translúcido, logo, fundo→asset) | ✅ **Commitada (`8348624`) e publicada** — 42/42 testes. **Frete reescrito p/ endereço→ORS (Parte 3, working tree, 49/49 + 42/42). Ativação real:** redeploy V5 + colar `SHEETS_URL` |
 | **E** | Múltiplos caldos (tipos diferentes) + preço por caldo + total; religar a planilha (incl. colunas para **número** e **complemento**) | Não iniciada |
 
 ---
 
 ## 5. Pendências (o que falta / depende de decisão)
 
-- **[Você]** Criar conta gratuita na **OpenRouteService** e gerar a **chave de API** (vai em
-  **Script Properties** do Apps Script, nunca no front). **Continua ativa**, mas agora bloqueia
-  apenas a **ponta real** do frete: o código já está pronto e cai no fallback "a confirmar" até a
-  chave + redeploy.
+- **[Você — Apps Script]** Ativar o frete real: colar o backend atualizado no editor → **redeploy
+  Versão 5** → smoke test por curl (CEPs de Osasco) → se vier km, **colar `SHEETS_URL` no front**.
+  *(A chave ORS já está em Script Properties e a permissão `script.external_request` já foi concedida.)*
 - **[Entrega E]** Religar a planilha: colar `SHEETS_URL` no front, conferir o cabeçalho de
   **16 colunas (A1:P1)** já no backend (incl. CEP, Distância(km), Subtotal, Frete). As colunas de
   `numero`/`complemento` (Entrega B) seguem fora do appendRow — decidir se entram aqui.
@@ -171,7 +183,13 @@ número / complemento (ViaCEP preenche a rua) + scroll/foco ao 1º campo inváli
 - **Ativação real do frete** (chave ORS em Script Properties + colar `SHEETS_URL` + redeploy)
   concentrada na Entrega E.
 
-**Próximo passo:** iniciar a **Entrega E** (C+D já commitadas em `8348624` e no ar).
+**Frete reescrito (Parte 3 — no working tree, entra no commit desta sessão):** a geocodificação passou
+de CEP→ORS para **ENDEREÇO→ORS** (o front envia os 4 campos do ViaCEP; o backend geocodifica). Motivo:
+CEP puro na ORS = 0 resultados e o ViaCEP bloqueia o IP do Apps Script. `BASE_LONLAT` corrigido; `ORS_KEY`
++ permissão externa OK. Backend 49/49 + front 42/42 (provam o wiring, não o geocode real).
+
+**Próximo passo:** **ativar o frete** — redeploy do backend (Versão 5) + smoke test por curl
+(CEPs de Osasco) + colar `SHEETS_URL`; depois a Entrega E.
 
 ---
 
@@ -259,6 +277,7 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
 | Arquivo | Local | Para quem | Função | Atualização |
 |---|---|---|---|---|
 | `docs/contexto.md` | docs/ | Próximo chat / Code | Estado vivo + processo + roadmap (este arquivo). | **Antes do fim de cada sessão.** |
+| `docs/resumo-sessao-N.md` | docs/ | Próxima sessão / histórico | **Registro arquivado** (snapshot detalhado) de cada sessão — um arquivo por sessão, versionado no git. Distinto do `contexto.md` (estado vivo conciso). | Criado ao fim de cada sessão; **permanente** (não se sobrescreve). |
 | `docs/prompt.md` | docs/ | Próximo chat (Consultor) | Como o chat deve agir (prompt-mestre de negócio). | Conforme necessidade. |
 | `docs/code.md` | docs/ | Claude Code | Como o Code deve e não deve agir. | Conforme necessidade. |
 | `README.md` | raiz | GitHub / portfólio | Apresentação do projeto (PT + seções-chave EN). | Conforme necessidade. |
@@ -270,6 +289,16 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
 - Contexto sincronizado com o git (C+D já em `8348624` e no ar).
 - Regra de formato de prompt do Code passou a viver na skill `code-handoff-prompt`;
   `prompt.md` guarda só um ponteiro.
+- **Frete reescrito para ENDEREÇO→ORS (Parte 3, no working tree):** o front envia os 4 campos do
+  ViaCEP (logradouro/bairro/localidade/uf) ao backend, que geocodifica o endereço na ORS. Motivo:
+  CEP puro na ORS = 0 resultados; e o backend não alcança o ViaCEP (bloqueio de IP do Google/Apps
+  Script). Backend 49/49 + front 42/42. **Ativação pendente:** redeploy V5 + `SHEETS_URL` + smoke por curl.
+- **`BASE_LONLAT` geocodificado** `[-46.806196, -23.477291]` (era ~6 km fora). `ORS_KEY` em Script
+  Properties confirmada; permissão `script.external_request` concedida (via `_autorizar`); diagnóstico
+  por `_diag`. Temporárias `_autorizar`/`_diag` e `enderecoDoCep_` removidas; `geocodeCep_` → `geocodeEndereco_`.
+- Criadas 2 skills cross-projeto: `code-handoff-prompt` e `session-summary`.
+- Resumo de sessão passou a ser **ARQUIVO PERMANENTE** por sessão (`docs/resumo-sessao-N.md`).
+- Nova regra no `prompt.md`: tarefas manuais executáveis por agente Claude são feitas pelo agente.
 
 ### Sessão 1
 - Subida do projeto ao GitHub (commit \`d8c5516\`).

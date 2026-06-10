@@ -123,7 +123,7 @@ function recalc(){
   $('#freteInfo').textContent=r.info;
   $('#sumTotal').textContent=r.totalTxt;
 }
-window.fetchDistanciaKm=function(cep){
+window.fetchDistanciaKm=function(cep,logradouro,bairro,localidade,uf){
   return new Promise((resolve,reject)=>{
     if(!SHEETS_URL){ reject(new Error('backend desligado')); return; }
     const cb='__cf_dist_'+Date.now();
@@ -133,17 +133,22 @@ window.fetchDistanciaKm=function(cep){
     window[cb]=resp=>{ if(done) return; done=true; clearTimeout(to); cleanup();
       if(resp&&typeof resp.km==='number') resolve(resp.km); else reject(new Error('sem distancia')); };
     s.onerror=()=>{ if(!done){ done=true; clearTimeout(to); cleanup(); reject(new Error('falha script')); } };
-    s.src=SHEETS_URL+'?cep='+encodeURIComponent(cep)+'&callback='+cb;
+    s.src=SHEETS_URL+'?cep='+encodeURIComponent(cep)
+      +'&logradouro='+encodeURIComponent(logradouro||'')
+      +'&bairro='+encodeURIComponent(bairro||'')
+      +'&localidade='+encodeURIComponent(localidade||'')
+      +'&uf='+encodeURIComponent(uf||'')
+      +'&callback='+cb;
     document.body.appendChild(s);
   });
 };
 let lastCepFrete='';
-async function lookupFrete(cep){
+async function lookupFrete(cep,logradouro,bairro,localidade,uf){
   if(cep===lastCepFrete) return;
   lastCepFrete=cep;
   freteState={status:'buscando',km:null,valor:0}; recalc();
   try{
-    const km=await window.fetchDistanciaKm(cep);
+    const km=await window.fetchDistanciaKm(cep,logradouro,bairro,localidade,uf);
     const f=calcFrete(km);
     freteState={status:f.status,km:(typeof km==='number'?km:null),valor:f.valor||0};
   }catch(err){
@@ -210,6 +215,8 @@ async function lookupCep(cep){
     setAuto('cidade',d.localidade);
     setAuto('uf',d.uf);
     setCepStatus('Endereço preenchido pelo CEP ✓ — confira e complete o número.','ok');
+    // Frete só APÓS o ViaCEP responder, com o endereço recém-recebido (evita corrida).
+    lookupFrete(cep,d.logradouro,d.bairro,d.localidade,d.uf);
   }catch(err){
     console.warn('ViaCEP falhou:',err);
     setCepStatus('Não foi possível buscar o CEP agora. Preencha o endereço manualmente.','warn');
@@ -220,11 +227,11 @@ cepEl.addEventListener('input',()=>{
   cepEl.value=v.length>5?v.slice(0,5)+'-'+v.slice(5):v;     // máscara 00000-000
   cepEl.closest('.field')?.classList.remove('invalid');
   if(v.length<8){ lastCepQueried=''; resetFrete(); recalc(); }
-  if(v.length===8){ lookupCep(v); lookupFrete(v); }
+  if(v.length===8){ lookupCep(v); }
 });
 cepEl.addEventListener('blur',()=>{
   const v=cepEl.value.replace(/\D/g,'');
-  if(v.length===8){ lookupCep(v); lookupFrete(v); }
+  if(v.length===8){ lookupCep(v); }
 });
 autoFields.uf.addEventListener('input',()=>{ autoFields.uf.value=autoFields.uf.value.toUpperCase(); });
 function resetCep(){ lastCepQueried=''; Object.keys(autoLast).forEach(k=>autoLast[k]=''); setCepStatus('',''); resetFrete(); }

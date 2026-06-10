@@ -181,7 +181,7 @@ function doPost(e) {
 
 // Coordenadas [lon, lat] da base (Rua Açucena, 175 — Parque Imperial, Barueri).
 // AJUSTE: geocodifique a base uma vez e cole a coordenada real aqui.
-const BASE_LONLAT = [-46.8470, -23.5180]; // aproximado — confirmar
+const BASE_LONLAT = [-46.806196, -23.477291]; // R. Açucena, 175, Parque Imperial, Barueri/SP — geocodificado e confirmado no mapa
 
 function orsKey_() {
   const k = PropertiesService.getScriptProperties().getProperty("ORS_KEY");
@@ -189,10 +189,28 @@ function orsKey_() {
   return k;
 }
 
-function geocodeCep_(cep) {
+// Monta o texto de endereço a partir dos campos (logradouro, bairro, localidade, uf)
+// que o FRONT obtém do ViaCEP e envia ao backend: campos não-vazios na ordem, sempre
+// terminando em "Brasil". O backend NÃO chama o ViaCEP (ele recusa os IPs do Apps Script).
+// PURA (sem rede) — replicada em tests/backend-tests.mjs. Se mudar aqui, atualize o teste.
+function montarEndereco_(via) {
+  const partes = [];
+  const campos = ["logradouro", "bairro", "localidade", "uf"];
+  for (let i = 0; i < campos.length; i++) {
+    const val = String((via && via[campos[i]] != null) ? via[campos[i]] : "").trim();
+    if (val) partes.push(val);
+  }
+  partes.push("Brasil");
+  return partes.join(", ");
+}
+
+// Geocodifica na ORS um endereço JÁ MONTADO (texto). Endereço vazio (só "Brasil")
+// lança erro, para a cadeia cair no fallback "frete a confirmar".
+function geocodeEndereco_(text) {
+  if (text === "Brasil") throw new Error("endereco vazio");
   const url = "https://api.openrouteservice.org/geocode/search"
     + "?api_key=" + encodeURIComponent(orsKey_())
-    + "&text=" + encodeURIComponent(cep + ", Brasil")
+    + "&text=" + encodeURIComponent(text)
     + "&boundary.country=BR&size=1";
   const r = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
   const d = JSON.parse(r.getContentText());
@@ -200,8 +218,8 @@ function geocodeCep_(cep) {
   return d.features[0].geometry.coordinates; // [lon, lat]
 }
 
-function distanciaKmDaBase_(cep) {
-  const dest = geocodeCep_(cep);
+function distanciaKmDaBase_(text) {
+  const dest = geocodeEndereco_(text);
   const r = UrlFetchApp.fetch("https://api.openrouteservice.org/v2/matrix/driving-car", {
     method: "post",
     contentType: "application/json",
@@ -215,15 +233,20 @@ function distanciaKmDaBase_(cep) {
   return Math.round(km * 10) / 10; // 1 casa decimal
 }
 
-// doGet: JSONP de distância ( .../exec?cep=12345678&callback=cb -> cb({ok,km}) )
-// ou, sem cep, responde texto "ativo" (teste no navegador).
+// doGet: JSONP de distância ( .../exec?cep=12345678&logradouro=...&bairro=...&localidade=...&uf=...&callback=cb -> cb({ok,km}) )
+// O endereço vem do front (que consultou o ViaCEP); sem cep/callback, responde texto "ativo".
 function doGet(e) {
   const p = (e && e.parameter) || {};
   const cep = String(p.cep || "").replace(/\D/g, "");
   const cb = String(p.callback || "");
   if (cep.length === 8 && cb) {
+    // O endereço (logradouro/bairro/localidade/uf) vem do front, que consultou o ViaCEP.
+    const text = montarEndereco_({
+      logradouro: p.logradouro, bairro: p.bairro,
+      localidade: p.localidade, uf: p.uf
+    });
     let payload;
-    try { payload = { ok: true, km: distanciaKmDaBase_(cep) }; }
+    try { payload = { ok: true, km: distanciaKmDaBase_(text) }; }
     catch (err) { payload = { ok: false, erro: String(err) }; }
     return ContentService
       .createTextOutput(cb + "(" + JSON.stringify(payload) + ");")
