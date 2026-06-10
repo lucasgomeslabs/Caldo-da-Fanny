@@ -4,11 +4,11 @@
 > Reúne: estado atual, decisões, roadmap, **processo de trabalho** e **regras**.
 > **Deve ser atualizado antes do fim de cada sessão.**
 
-- **Última atualização:** Sessão 1
-- **Sessão atual:** 1
+- **Última atualização:** Sessão 2
+- **Sessão atual:** 2
 - **Status geral:** **Parte 1 no ar.** **Entregas C (segurança) e D (frete por distância + visual)
-  IMPLEMENTADAS localmente** (front 42/42 + backend 43/43), **aguardando commit**. Ativação real do
-  frete depende da chave ORS + redeploy (Entrega E). Próxima após o commit: **Entrega E**.
+  commitadas em `8348624` e publicadas** (origin/main; deploy automático no Netlify) — front 42/42 +
+  backend 43/43. Ativação real do frete depende da chave ORS + redeploy (Entrega E). Próxima: **Entrega E**.
 
 ---
 
@@ -113,8 +113,8 @@ resta só o `caldodafanny`.
 |---|---|---|
 | **A** | WhatsApp novo + máscara de telefone | ✅ **Concluída, aprovada e commitada** (`09b75d9`) |
 | **B** | Separar campos de endereço (rua / número / complemento-referência); ViaCEP preenche a rua; + scroll/foco ao 1º campo inválido | ✅ **Concluída e commitada** (`27c2caa`, 29/29) |
-| **C** | Segurança proporcional (anti-fórmula Sheets, validação/sanitização backend, limite de tamanho, honeypot) | ✅ **Implementada (local), aguardando commit** — 43/43 testes puros |
-| **D** | Frete **por distância em km** (≤3 grátis / 3–4 R$4 / 4–5 R$6 / 5–6 R$8 / >6 consultar); distância via **OpenRouteService** (JSONP, chave protegida); **campo "Área de entrega" removido**; visual (card translúcido, logo, fundo→asset) | ✅ **Implementada (local), aguardando commit** — 42/42 testes. **Ativação real:** chave ORS + redeploy (Entrega E) |
+| **C** | Segurança proporcional (anti-fórmula Sheets, validação/sanitização backend, limite de tamanho, honeypot) | ✅ **Commitada (`8348624`) e publicada** (origin/main; deploy automático no Netlify) — 43/43 testes puros |
+| **D** | Frete **por distância em km** (≤3 grátis / 3–4 R$4 / 4–5 R$6 / 5–6 R$8 / >6 consultar); distância via **OpenRouteService** (JSONP, chave protegida); **campo "Área de entrega" removido**; visual (card translúcido, logo, fundo→asset) | ✅ **Commitada (`8348624`) e publicada** (origin/main; deploy automático no Netlify) — 42/42 testes. **Ativação real:** chave ORS + redeploy (Entrega E) |
 | **E** | Múltiplos caldos (tipos diferentes) + preço por caldo + total; religar a planilha (incl. colunas para **número** e **complemento**) | Não iniciada |
 
 ---
@@ -160,7 +160,7 @@ origin/main: 09b75d9 (Entrega A + docs), 4a65e0e (docs/processo), d772b51 (netli
 **Entrega B concluída e commitada** (`27c2caa`, 29/29 testes): endereço separado em rua /
 número / complemento (ViaCEP preenche a rua) + scroll/foco ao 1º campo inválido.
 
-**Entregas C e D IMPLEMENTADAS localmente (aguardando commit):**
+**Entregas C e D commitadas (`8348624`) e publicadas (origin/main; deploy automático no Netlify):**
 - **C (segurança):** validação/sanitização no backend, anti-fórmula (apóstrofo; plano B
   `setNumberFormat("@")` documentado), limite de tamanho, honeypot (só no backend). Testes
   puros em `tests/backend-tests.mjs` (43/43).
@@ -171,7 +171,7 @@ número / complemento (ViaCEP preenche a rua) + scroll/foco ao 1º campo inváli
 - **Ativação real do frete** (chave ORS em Script Properties + colar `SHEETS_URL` + redeploy)
   concentrada na Entrega E.
 
-**Próximo passo:** revisar os diffs e commitar as Entregas C+D; depois iniciar a Entrega E.
+**Próximo passo:** iniciar a **Entrega E** (C+D já commitadas em `8348624` e no ar).
 
 ---
 
@@ -265,6 +265,11 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
 | `GUIA-INSTALACAO.md` | raiz | A dona (Fanny) | Manual de instalação/operação (leigo). | Conforme necessidade. |
 
 ## 10. Registro de sessões
+
+### Sessão 2
+- Contexto sincronizado com o git (C+D já em `8348624` e no ar).
+- Regra de formato de prompt do Code passou a viver na skill `code-handoff-prompt`;
+  `prompt.md` guarda só um ponteiro.
 
 ### Sessão 1
 - Subida do projeto ao GitHub (commit \`d8c5516\`).

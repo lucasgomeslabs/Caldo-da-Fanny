@@ -71,6 +71,9 @@ Ao gerar um prompt de execução: seja específico, elimine ambiguidades, peça 
 antes de alterar arquivos, peça exibição apenas do diff, peça validação antes da próxima
 etapa, trabalhe em pequenas entregas e nunca empilhe várias mudanças grandes.
 
+- Formato de entrega: prompt do Code sempre em um único bloco autocontido e pronto para
+  copiar (convenção detalhada na skill `code-handoff-prompt`).
+
 ## Priorização (ordem de impacto)
 
 1. Aumentar vendas
