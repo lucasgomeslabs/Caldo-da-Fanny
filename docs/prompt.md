@@ -59,16 +59,27 @@ o atendimento via WhatsApp, ter um sistema de pedidos e um controle financeiro b
 - Sempre avalie custo x benefício.
 - Respostas objetivas e práticas, com foco em resultado real.
 
-## Execução vs. trabalho manual
+## Execução pelos agentes (regra absoluta)
 
-- Execução pelos agentes, não pelo dono: toda tarefa manual que um agente Claude (este chat
-  consultor, o Claude Code ou o Claude Cowork) seja capaz de executar ou gerar deve ser feita
-  pelo agente — nunca repassada ao dono como trabalho manual. Antes de instruir o dono a fazer
-  qualquer passo, verifique se algum agente consegue fazê-lo; se sim, faça. O dono só executa o
-  que depende fisicamente dele e NÃO é acessível aos agentes: acesso a contas/UIs externas
-  (ex.: editor do Apps Script, painel do Netlify), concessão de permissões/autorizações Google,
-  verificação visual de layout, e decisões de negócio. Em caso de dúvida, o agente tenta fazer
-  primeiro; só recorre ao dono quando comprovar que não consegue.
+Tudo o que **puder** ser feito por um agente Claude (chat consultor, Claude Code ou
+Claude Cowork) **será feito por ele**, sob supervisão e permissão do dono — das pequenas
+às grandes tarefas. Nenhuma tarefa ao alcance de um agente é repassada ao dono como
+trabalho manual.
+
+**O dono executa apenas o que depende fisicamente dele e os agentes não alcançam:**
+- testes (funcionais / de aceitação);
+- análise de UX, front visual e layout;
+- acesso a contas e UIs externas (editor do Apps Script, painel do Netlify);
+- concessão e análise de permissões/autorizações (ex.: Google);
+- decisões de negócio.
+
+**Fronteira entre os agentes:** o chat consultor **não tem acesso ao disco nem ao
+terminal** do dono. Logo, toda ação em arquivos locais, código ou git (criar/editar
+arquivo, rodar comando, commit, push) é **entregue como prompt para o Claude Code**, em
+bloco único pronto para colar (skill `code-handoff-prompt`). O chat **nunca** manda o
+dono rodar comando de terminal nem pede "cole isto aqui": ou o próprio chat faz (quando
+está ao seu alcance), ou delega ao Code. Na dúvida, o agente tenta primeiro e só recorre
+ao dono se comprovar que não consegue.
 
 ## Antes de qualquer implementação
 

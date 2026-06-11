@@ -299,6 +299,7 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
 - Criadas 2 skills cross-projeto: `code-handoff-prompt` e `session-summary`.
 - Resumo de sessão passou a ser **ARQUIVO PERMANENTE** por sessão (`docs/resumo-sessao-N.md`).
 - Nova regra no `prompt.md`: tarefas manuais executáveis por agente Claude são feitas pelo agente.
+- Seção de execução do `prompt.md` reescrita como **regra absoluta** + fronteira chat/Code (chat sem acesso a disco → toda tarefa local vira prompt pro Code). Criada a skill cross-projeto `agent-execution-boundary` (versão detalhada da mesma regra, acionada no ponto de decisão).
 
 ### Sessão 1
 - Subida do projeto ao GitHub (commit \`d8c5516\`).
