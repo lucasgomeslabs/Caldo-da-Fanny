@@ -4,12 +4,12 @@
 > Reúne: estado atual, decisões, roadmap, **processo de trabalho** e **regras**.
 > **Deve ser atualizado antes do fim de cada sessão.**
 
-- **Última atualização:** Sessão 2
-- **Sessão atual:** 2
-- **Status geral:** **Parte 1 no ar. Entregas C+D em `8348624`, no ar.** **Frete reimplementado
-  (Parte 3, no working tree): o front envia o endereço do ViaCEP ao backend, que geocodifica na ORS
-  (endereço→ORS, não CEP puro)** — implementado e testado (backend 49/49 + front 42/42). **Ativação
-  real pendente:** redeploy do backend (Versão 5) + colar `SHEETS_URL` + smoke test por curl.
+- **Última atualização:** Sessão 3
+- **Sessão atual:** 3
+- **Status geral:** **Parte 1 no ar. Entregas C+D em `8348624`, no ar.** **Parte 3 (frete endereço→ORS)
+  commitada em `de63ff0` e AGORA ativa no front:** a const `FRETE_URL` aponta ao `/exec` (backend
+  **Versão 5**, smoke test `{"ok":true,"km":10}`). A **gravação na planilha (Entrega E) segue DESLIGADA**
+  (`SHEETS_URL` vazia). Testes: backend 49/49 + front 42/42.
 
 ---
 
@@ -64,8 +64,9 @@ resta só o `caldodafanny`.
 - **Frete:** **implementado** — degraus por distância via ORS, com **fallback não-bloqueante**
   ("a confirmar pelo WhatsApp"). **Geocodificação por ENDEREÇO** (não CEP puro): o front obtém o
   endereço no ViaCEP (navegador) e **envia os 4 campos** (logradouro/bairro/localidade/uf) ao
-  backend via JSONP; o backend geocodifica o endereço na ORS. Valor real só após redeploy (V5) +
-  colar `SHEETS_URL`.
+  backend via JSONP; o backend geocodifica o endereço na ORS. **Ativo no front** via a const
+  `FRETE_URL` → `/exec` (backend V5; smoke `{"ok":true,"km":10}`). `SHEETS_URL` segue vazia
+  (gravação na planilha = Entrega E, desligada).
 - **Sanitização:** fraca. Sem anti-fórmula no Sheets, sem honeypot (Entrega C).
 
 ---
@@ -127,16 +128,13 @@ resta só o `caldodafanny`.
 | **A** | WhatsApp novo + máscara de telefone | ✅ **Concluída, aprovada e commitada** (`09b75d9`) |
 | **B** | Separar campos de endereço (rua / número / complemento-referência); ViaCEP preenche a rua; + scroll/foco ao 1º campo inválido | ✅ **Concluída e commitada** (`27c2caa`, 29/29) |
 | **C** | Segurança proporcional (anti-fórmula Sheets, validação/sanitização backend, limite de tamanho, honeypot) | ✅ **Commitada (`8348624`) e publicada** (origin/main; deploy automático no Netlify) — 43/43 testes puros |
-| **D** | Frete **por distância em km** (≤3 grátis / 3–4 R$4 / 4–5 R$6 / 5–6 R$8 / >6 consultar); distância via **OpenRouteService** (JSONP, chave protegida); **campo "Área de entrega" removido**; visual (card translúcido, logo, fundo→asset) | ✅ **Commitada (`8348624`) e publicada** — 42/42 testes. **Frete reescrito p/ endereço→ORS (Parte 3, working tree, 49/49 + 42/42). Ativação real:** redeploy V5 + colar `SHEETS_URL` |
+| **D** | Frete **por distância em km** (≤3 grátis / 3–4 R$4 / 4–5 R$6 / 5–6 R$8 / >6 consultar); distância via **OpenRouteService** (JSONP, chave protegida); **campo "Área de entrega" removido**; visual (card translúcido, logo, fundo→asset) | ✅ **Commitada (`8348624`) e publicada** — 42/42. **Frete reescrito p/ endereço→ORS (Parte 3) em `de63ff0`; ATIVADO no front (Sessão 3):** const `FRETE_URL` → `/exec` (V5, smoke `{"ok":true,"km":10}`). Backend 49/49 + front 42/42. *(A planilha — `doPost`/`SHEETS_URL` — segue na Entrega E.)* |
 | **E** | Múltiplos caldos (tipos diferentes) + preço por caldo + total; religar a planilha (incl. colunas para **número** e **complemento**) | Não iniciada |
 
 ---
 
 ## 5. Pendências (o que falta / depende de decisão)
 
-- **[Você — Apps Script]** Ativar o frete real: colar o backend atualizado no editor → **redeploy
-  Versão 5** → smoke test por curl (CEPs de Osasco) → se vier km, **colar `SHEETS_URL` no front**.
-  *(A chave ORS já está em Script Properties e a permissão `script.external_request` já foi concedida.)*
 - **[Entrega E]** Religar a planilha: colar `SHEETS_URL` no front, conferir o cabeçalho de
   **16 colunas (A1:P1)** já no backend (incl. CEP, Distância(km), Subtotal, Frete). As colunas de
   `numero`/`complemento` (Entrega B) seguem fora do appendRow — decidir se entram aqui.
@@ -180,16 +178,14 @@ número / complemento (ViaCEP preenche a rua) + scroll/foco ao 1º campo inváli
   via JSONP), resumo Subtotal/Frete/Total, mensagem do WhatsApp atualizada, **fallback
   não-bloqueante**; visual (card translúcido, logo reenquadrada, fundo extraído para
   `frontend/assets/bg-cozinha.jpg`, HTML de ~300 KB → ~28 KB). Front 42/42.
-- **Ativação real do frete** (chave ORS em Script Properties + colar `SHEETS_URL` + redeploy)
-  concentrada na Entrega E.
+- **Ativação real do frete:** feita na Sessão 3 (redeploy V5 + `FRETE_URL` no front; smoke `{"ok":true,"km":10}`).
 
-**Frete reescrito (Parte 3 — no working tree, entra no commit desta sessão):** a geocodificação passou
+**Frete reescrito (Parte 3 — commitada em `de63ff0` e ativada no front nesta sessão):** a geocodificação passou
 de CEP→ORS para **ENDEREÇO→ORS** (o front envia os 4 campos do ViaCEP; o backend geocodifica). Motivo:
 CEP puro na ORS = 0 resultados e o ViaCEP bloqueia o IP do Apps Script. `BASE_LONLAT` corrigido; `ORS_KEY`
 + permissão externa OK. Backend 49/49 + front 42/42 (provam o wiring, não o geocode real).
 
-**Próximo passo:** **ativar o frete** — redeploy do backend (Versão 5) + smoke test por curl
-(CEPs de Osasco) + colar `SHEETS_URL`; depois a Entrega E.
+**Próximo passo:** testar 1 CEP por faixa no site real (≤3/3–4/4–5/5–6/>6) + Entrega E (religar a planilha).
 
 ---
 
@@ -285,6 +281,13 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
 
 ## 10. Registro de sessões
 
+### Sessão 3
+- Sessão iniciada com a Parte 3 já commitada no backend (`de63ff0`).
+- Docs/governança: seção de execução do `prompt.md` reescrita como **regra absoluta** + fronteira chat/Code; criada a skill cross-projeto `agent-execution-boundary` (commit `988d08d`).
+- Backend reimplantado **Versão 5**; smoke test do `/exec` retornou `{"ok":true,"km":10}` (Av. Yara, Vila Yara, Osasco → base Barueri ≈10 km) — prova o geocode real (ORS_KEY válida).
+- **Frete real ativado no front:** nova const `FRETE_URL` aponta ao `/exec`; `SHEETS_URL` segue vazia → gravação na planilha (`doPost`) continua DESLIGADA (Entrega E).
+- `tests/harness.html` sincronizado (`SHEETS_URL`→`FRETE_URL` no caminho do frete, valor `""` preservado); 42/42.
+
 ### Sessão 2
 - Contexto sincronizado com o git (C+D já em `8348624` e no ar).
 - Regra de formato de prompt do Code passou a viver na skill `code-handoff-prompt`;
@@ -299,7 +302,6 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
 - Criadas 2 skills cross-projeto: `code-handoff-prompt` e `session-summary`.
 - Resumo de sessão passou a ser **ARQUIVO PERMANENTE** por sessão (`docs/resumo-sessao-N.md`).
 - Nova regra no `prompt.md`: tarefas manuais executáveis por agente Claude são feitas pelo agente.
-- Seção de execução do `prompt.md` reescrita como **regra absoluta** + fronteira chat/Code (chat sem acesso a disco → toda tarefa local vira prompt pro Code). Criada a skill cross-projeto `agent-execution-boundary` (versão detalhada da mesma regra, acionada no ponto de decisão).
 
 ### Sessão 1
 - Subida do projeto ao GitHub (commit \`d8c5516\`).

@@ -68,6 +68,7 @@
 /* ===================== CONFIGURAÇÃO ===================== */
 const WHATSAPP = "5511937223540";
 const SHEETS_URL = ""; // cole aqui a URL .../exec do Apps Script
+const FRETE_URL = ""; // snapshot do index.html: no harness fica VAZIO (backend off) p/ exercitar o fallback; no index aponta ao /exec.
 /* ======================================================= */
 
 const PRICE = 24.90;
@@ -125,7 +126,7 @@ function recalc(){
 }
 window.fetchDistanciaKm=function(cep,logradouro,bairro,localidade,uf){
   return new Promise((resolve,reject)=>{
-    if(!SHEETS_URL){ reject(new Error('backend desligado')); return; }
+    if(!FRETE_URL){ reject(new Error('backend desligado')); return; }
     const cb='__cf_dist_'+Date.now();
     const s=document.createElement('script'); let done=false;
     const cleanup=()=>{ try{delete window[cb];}catch(_){ window[cb]=undefined; } if(s.parentNode) s.parentNode.removeChild(s); };
@@ -133,7 +134,7 @@ window.fetchDistanciaKm=function(cep,logradouro,bairro,localidade,uf){
     window[cb]=resp=>{ if(done) return; done=true; clearTimeout(to); cleanup();
       if(resp&&typeof resp.km==='number') resolve(resp.km); else reject(new Error('sem distancia')); };
     s.onerror=()=>{ if(!done){ done=true; clearTimeout(to); cleanup(); reject(new Error('falha script')); } };
-    s.src=SHEETS_URL+'?cep='+encodeURIComponent(cep)
+    s.src=FRETE_URL+'?cep='+encodeURIComponent(cep)
       +'&logradouro='+encodeURIComponent(logradouro||'')
       +'&bairro='+encodeURIComponent(bairro||'')
       +'&localidade='+encodeURIComponent(localidade||'')
