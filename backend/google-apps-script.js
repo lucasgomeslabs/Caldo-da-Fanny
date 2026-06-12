@@ -151,7 +151,7 @@ function doPost(e) {
       cleanText(d.endereco, LIMITES.endereco),
       cleanText(d.bairro_cep, LIMITES.bairro_cep),   // "Bairro" = bairro do ViaCEP (campo manual removido)
       cleanText(d.cep, LIMITES.cep),
-      cleanText(d.km, LIMITES.km),                   // Distância calculada pelo ORS (pode vir vazia)
+      cleanText(d.km, LIMITES.km),                   // Distância (km) calculada no front (Nominatim+Haversine); pode vir vazia
       cleanText(d.caldo, LIMITES.caldo),
       cleanText(d.qtde, LIMITES.qtde),
       cleanText(d.pagamento, LIMITES.pagamento),
@@ -172,85 +172,10 @@ function doPost(e) {
 }
 
 /* ===================================================================
-   FRETE — distância via OpenRouteService (Entrega D).
-   A CHAVE fica em Script Properties (ORS_KEY), nunca no código/repo.
-   doGet responde por JSONP para o front ler a distância sem expor a chave.
-   Só funciona após: criar a chave ORS + colá-la em Script Properties +
-   reimplantar. Até lá, o front cai no fallback "frete a confirmar".
+   doGet — healthcheck. O cálculo de frete foi 100% para o front
+   (Nominatim + Haversine no index.html); o backend agora só grava
+   pedidos via doPost. Mantido só para indicar que o app está no ar.
    =================================================================== */
-
-// Coordenadas [lon, lat] da base (Rua Açucena, 175 — Parque Imperial, Barueri).
-// AJUSTE: geocodifique a base uma vez e cole a coordenada real aqui.
-const BASE_LONLAT = [-46.806196, -23.477291]; // R. Açucena, 175, Parque Imperial, Barueri/SP — geocodificado e confirmado no mapa
-
-function orsKey_() {
-  const k = PropertiesService.getScriptProperties().getProperty("ORS_KEY");
-  if (!k) throw new Error("ORS_KEY ausente em Script Properties");
-  return k;
-}
-
-// Monta o texto de endereço a partir dos campos (logradouro, bairro, localidade, uf)
-// que o FRONT obtém do ViaCEP e envia ao backend: campos não-vazios na ordem, sempre
-// terminando em "Brasil". O backend NÃO chama o ViaCEP (ele recusa os IPs do Apps Script).
-// PURA (sem rede) — replicada em tests/backend-tests.mjs. Se mudar aqui, atualize o teste.
-function montarEndereco_(via) {
-  const partes = [];
-  const campos = ["logradouro", "bairro", "localidade", "uf"];
-  for (let i = 0; i < campos.length; i++) {
-    const val = String((via && via[campos[i]] != null) ? via[campos[i]] : "").trim();
-    if (val) partes.push(val);
-  }
-  partes.push("Brasil");
-  return partes.join(", ");
-}
-
-// Geocodifica na ORS um endereço JÁ MONTADO (texto). Endereço vazio (só "Brasil")
-// lança erro, para a cadeia cair no fallback "frete a confirmar".
-function geocodeEndereco_(text) {
-  if (text === "Brasil") throw new Error("endereco vazio");
-  const url = "https://api.openrouteservice.org/geocode/search"
-    + "?api_key=" + encodeURIComponent(orsKey_())
-    + "&text=" + encodeURIComponent(text)
-    + "&boundary.country=BR&size=1";
-  const r = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
-  const d = JSON.parse(r.getContentText());
-  if (!d.features || !d.features.length) throw new Error("CEP nao geocodificado");
-  return d.features[0].geometry.coordinates; // [lon, lat]
-}
-
-function distanciaKmDaBase_(text) {
-  const dest = geocodeEndereco_(text);
-  const r = UrlFetchApp.fetch("https://api.openrouteservice.org/v2/matrix/driving-car", {
-    method: "post",
-    contentType: "application/json",
-    headers: { Authorization: orsKey_() },
-    payload: JSON.stringify({ locations: [BASE_LONLAT, dest], metrics: ["distance"], units: "km" }),
-    muteHttpExceptions: true
-  });
-  const d = JSON.parse(r.getContentText());
-  const km = d && d.distances && d.distances[0] && d.distances[0][1];
-  if (typeof km !== "number") throw new Error("distancia indisponivel");
-  return Math.round(km * 10) / 10; // 1 casa decimal
-}
-
-// doGet: JSONP de distância ( .../exec?cep=12345678&logradouro=...&bairro=...&localidade=...&uf=...&callback=cb -> cb({ok,km}) )
-// O endereço vem do front (que consultou o ViaCEP); sem cep/callback, responde texto "ativo".
 function doGet(e) {
-  const p = (e && e.parameter) || {};
-  const cep = String(p.cep || "").replace(/\D/g, "");
-  const cb = String(p.callback || "");
-  if (cep.length === 8 && cb) {
-    // O endereço (logradouro/bairro/localidade/uf) vem do front, que consultou o ViaCEP.
-    const text = montarEndereco_({
-      logradouro: p.logradouro, bairro: p.bairro,
-      localidade: p.localidade, uf: p.uf
-    });
-    let payload;
-    try { payload = { ok: true, km: distanciaKmDaBase_(text) }; }
-    catch (err) { payload = { ok: false, erro: String(err) }; }
-    return ContentService
-      .createTextOutput(cb + "(" + JSON.stringify(payload) + ");")
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }
   return ContentService.createTextOutput("Caldo da Fanny — ativo");
 }
