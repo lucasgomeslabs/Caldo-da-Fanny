@@ -68,7 +68,6 @@
 /* ===================== CONFIGURAÇÃO ===================== */
 const WHATSAPP = "5511937223540";
 const SHEETS_URL = ""; // cole aqui a URL .../exec do Apps Script
-const FRETE_URL = ""; // snapshot do index.html: no harness fica VAZIO (backend off) p/ exercitar o fallback; no index aponta ao /exec.
 /* ======================================================= */
 
 const PRICE = 24.90;
@@ -92,16 +91,25 @@ document.querySelectorAll('#menu .item').forEach(it=>{
 });
 
 /* ===================== FRETE por distância (Entrega D) ===================== */
-/* calcFrete(km): tabela em DEGRAUS por distância rodoviária (km) até a base.
-   Limites: km<=3 grátis; (3,4] R$4; (4,5] R$6; (5,6] R$8; km>6 "consultar".
-   IDÊNTICA ao index.html e ao snapshot em tests/backend-tests.mjs. */
+// Base do frete em [lat, lon] (≈ CEP 06462520, R. Açucena — Parque Imperial, Barueri).
+// ATENÇÃO: ordem [lat, lon] (a Haversine usa lat,lon). Difere do backend, que usa [lon,lat].
+const BASE_LONLAT = [-23.4778015, -46.8063410];
+/* calcFrete(km): tabela em DEGRAUS por distância em LINHA RETA (km) até a base.
+   Limites: km<=2 grátis; (2,3] R$4; (3,5] R$6; km>5 "consultar".
+   IDÊNTICA ao index.html. */
 function calcFrete(km){
   if(typeof km!=='number'||!(km>=0)) return {valor:null,status:'indef'};
-  if(km<=3) return {valor:0,status:'gratis'};
-  if(km<=4) return {valor:4,status:'pago'};
+  if(km<=2) return {valor:0,status:'gratis'};
+  if(km<=3) return {valor:4,status:'pago'};
   if(km<=5) return {valor:6,status:'pago'};
-  if(km<=6) return {valor:8,status:'pago'};
   return {valor:null,status:'consultar'};
+}
+// Haversine: distância em km (linha reta) entre [lat1,lon1] e [lat2,lon2]. Raio 6371 km.
+function haversineKm(lat1,lon1,lat2,lon2){
+  const R=6371, rad=d=>d*Math.PI/180;
+  const dLat=rad(lat2-lat1), dLon=rad(lon2-lon1);
+  const a=Math.sin(dLat/2)**2+Math.cos(rad(lat1))*Math.cos(rad(lat2))*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 let freteState={status:'indef',km:null,valor:0};
 function resumoAtual(){
@@ -109,7 +117,7 @@ function resumoAtual(){
   let freteTxt, totalNum=null, info='';
   if(freteState.status==='gratis'){ freteTxt='Grátis'; totalNum=sub; if(k!=null) info='('+k+' km)'; }
   else if(freteState.status==='pago'){ freteTxt=fmt(freteState.valor); totalNum=sub+freteState.valor; if(k!=null) info='('+k+' km)'; }
-  else if(freteState.status==='consultar'){ freteTxt='Consultar pelo WhatsApp'; info='(> 6 km)'; }
+  else if(freteState.status==='consultar'){ freteTxt='Consultar pelo WhatsApp'; info='(> 5 km)'; }
   else if(freteState.status==='buscando'){ freteTxt='Calculando…'; }
   else { freteTxt='A confirmar pelo WhatsApp'; }
   return { subTxt:fmt(sub), freteTxt, info,
@@ -126,21 +134,23 @@ function recalc(){
 }
 window.fetchDistanciaKm=function(cep,logradouro,bairro,localidade,uf){
   return new Promise((resolve,reject)=>{
-    if(!FRETE_URL){ reject(new Error('backend desligado')); return; }
-    const cb='__cf_dist_'+Date.now();
-    const s=document.createElement('script'); let done=false;
-    const cleanup=()=>{ try{delete window[cb];}catch(_){ window[cb]=undefined; } if(s.parentNode) s.parentNode.removeChild(s); };
-    const to=setTimeout(()=>{ if(!done){ done=true; cleanup(); reject(new Error('timeout')); } },8000);
-    window[cb]=resp=>{ if(done) return; done=true; clearTimeout(to); cleanup();
-      if(resp&&typeof resp.km==='number') resolve(resp.km); else reject(new Error('sem distancia')); };
-    s.onerror=()=>{ if(!done){ done=true; clearTimeout(to); cleanup(); reject(new Error('falha script')); } };
-    s.src=FRETE_URL+'?cep='+encodeURIComponent(cep)
-      +'&logradouro='+encodeURIComponent(logradouro||'')
-      +'&bairro='+encodeURIComponent(bairro||'')
-      +'&localidade='+encodeURIComponent(localidade||'')
-      +'&uf='+encodeURIComponent(uf||'')
-      +'&callback='+cb;
-    document.body.appendChild(s);
+    const url='https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br'
+      +'&street='+encodeURIComponent(logradouro||'')
+      +'&city='+encodeURIComponent(localidade||'')
+      +'&state='+encodeURIComponent(uf||'');
+    const ctrl=new AbortController();
+    const to=setTimeout(()=>{ ctrl.abort(); reject(new Error('timeout')); },8000);
+    fetch(url,{signal:ctrl.signal})
+      .then(r=>r.json())
+      .then(arr=>{
+        clearTimeout(to);
+        const it=arr&&arr[0];
+        if(!it||it.lat==null||it.lon==null){ reject(new Error('sem resultado')); return; }
+        const km=haversineKm(BASE_LONLAT[0],BASE_LONLAT[1],parseFloat(it.lat),parseFloat(it.lon));
+        if(!(km<=30)){ reject(new Error('fora da area')); return; }
+        resolve(km);
+      })
+      .catch(err=>{ clearTimeout(to); reject(err); });
   });
 };
 let lastCepFrete='';
@@ -153,7 +163,7 @@ async function lookupFrete(cep,logradouro,bairro,localidade,uf){
     const f=calcFrete(km);
     freteState={status:f.status,km:(typeof km==='number'?km:null),valor:f.valor||0};
   }catch(err){
-    console.warn('Distância/ORS indisponível:',err);
+    console.warn('Distância/geocode indisponível:',err);
     freteState={status:'indef',km:null,valor:0};
   }
   recalc();

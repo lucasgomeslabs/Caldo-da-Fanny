@@ -21,6 +21,9 @@ function makeDom(fetchImpl) {
   window.scrollTo = () => {};
   window.HTMLElement.prototype.scrollIntoView = () => {};
   window.fetch = fetchImpl || (() => Promise.reject(new Error('sem fetch')));
+  // D-front: o fetchDistanciaKm real usa AbortController; garante que exista no ambiente jsdom.
+  window.AbortController = window.AbortController || globalThis.AbortController ||
+    class { constructor(){ this.signal = {}; } abort(){} };
   return window;
 }
 async function typeCep(w, digits) {
@@ -38,6 +41,9 @@ function submit(w) {
 }
 const okData = () => Promise.resolve({ ok: true, json: async () => (
   { logradouro: 'Praça da Sé', bairro: 'Sé', localidade: 'São Paulo', uf: 'SP' }) });
+// fetch que distingue ViaCEP de Nominatim pela URL (p/ exercitar o fetchDistanciaKm real).
+const routerFetch = (viacep, nominatim) => (url) =>
+  Promise.resolve({ ok: true, json: async () => (String(url).includes('nominatim') ? nominatim : viacep) });
 
 let pass = 0, fail = 0; const fails = [];
 function ok(cond, msg) { if (cond) { pass++; console.log('  ✓ ' + msg); }
@@ -58,6 +64,7 @@ const tests = {
 
   async 'T2 — ViaCEP preenche endereço/bairro/cidade/UF'() {
     const w = makeDom(okData);
+    w.fetchDistanciaKm = () => Promise.resolve(2);   // mock: não bate na rede (Nominatim)
     await typeCep(w, '01001000');
     eq(q(w, '[name="endereco"]').value, 'Praça da Sé', 'endereço (logradouro) preenchido');
     eq(q(w, '[name="bairro_cep"]').value, 'Sé', 'bairro preenchido');
@@ -68,6 +75,7 @@ const tests = {
 
   async 'T3 — edição manual é preservada; campo não editado atualiza'() {
     const w = makeDom(okData);
+    w.fetchDistanciaKm = () => Promise.resolve(2);   // mock: não bate na rede (Nominatim)
     await typeCep(w, '01001000');
     q(w, '[name="cidade"]').value = 'Cidade Editada';            // usuário edita
     w.fetch = () => Promise.resolve({ ok: true, json: async () => (
@@ -161,25 +169,50 @@ const tests = {
       return { frete: q(w, '#sumFrete').textContent, total: q(w, '#sumTotal').textContent };
     }
     let r;
-    r = await freteCase(2);   eq(r.frete, 'Grátis', '2 km = Grátis'); eq(r.total, 'R$ 24,90', '2 km: total = subtotal');
-    r = await freteCase(3);   eq(r.frete, 'Grátis', '3 km = Grátis (limite inferior)');
-    r = await freteCase(3.5); eq(r.frete, 'R$ 4,00', '3,5 km = R$ 4,00'); eq(r.total, 'R$ 28,90', '3,5 km: total = subtotal + 4');
-    r = await freteCase(4.5); eq(r.frete, 'R$ 6,00', '4,5 km = R$ 6,00');
-    r = await freteCase(5.5); eq(r.frete, 'R$ 8,00', '5,5 km = R$ 8,00');
+    r = await freteCase(2);   eq(r.frete, 'Grátis', '2,0 km = Grátis'); eq(r.total, 'R$ 24,90', '2 km: total = subtotal');
+    r = await freteCase(2.5); eq(r.frete, 'R$ 4,00', '2,5 km = R$ 4,00'); eq(r.total, 'R$ 28,90', '2,5 km: total = subtotal + 4');
+    r = await freteCase(3);   eq(r.frete, 'R$ 4,00', '3,0 km = R$ 4,00 (borda)');
+    r = await freteCase(3.5); eq(r.frete, 'R$ 6,00', '3,5 km = R$ 6,00');
+    r = await freteCase(5);   eq(r.frete, 'R$ 6,00', '5,0 km = R$ 6,00 (borda)');
+    r = await freteCase(5.5); eq(r.frete, 'Consultar pelo WhatsApp', '5,5 km = consultar');
     r = await freteCase(7);   eq(r.frete, 'Consultar pelo WhatsApp', '7 km = consultar'); eq(r.total, 'A confirmar', '7 km: total a confirmar');
   },
 
-  async 'T9 — falha do ORS não bloqueia (frete a confirmar)'() {
+  async 'T9 — falha do geocode não bloqueia (frete a confirmar)'() {
     const w = makeDom(okData);
-    w.fetchDistanciaKm = () => Promise.reject(new Error('ors down'));
+    w.fetchDistanciaKm = () => Promise.reject(new Error('geocode down'));
     await typeCep(w, '01001000'); await tick();
-    eq(q(w, '#sumFrete').textContent, 'A confirmar pelo WhatsApp', 'frete a confirmar quando o ORS falha');
+    eq(q(w, '#sumFrete').textContent, 'A confirmar pelo WhatsApp', 'frete a confirmar quando o geocode falha');
     q(w, '[name="nome"]').value = 'Ana'; q(w, '[name="telefone"]').value = '11999998888';
     q(w, '[name="endereco"]').value = 'Rua X'; q(w, '[name="numero"]').value = '10';
     pick(w, '[name="caldo"][value="Caldo Verde"]'); pick(w, '[name="pagamento"][value="PIX"]');
     submit(w); await tick(); await tick();
-    eq(q(w, '#done').style.display, 'block', 'pedido finaliza apesar da falha do ORS');
+    eq(q(w, '#done').style.display, 'block', 'pedido finaliza apesar da falha do geocode');
     ok(decodeURIComponent(q(w, '#waLink').href).includes('*Frete:* A confirmar pelo WhatsApp'), 'mensagem com frete a confirmar');
+  },
+
+  async 'T10 — Haversine: distância em linha reta (km)'() {
+    const w = makeDom();
+    const h = w.haversineKm;
+    eq(h(0,0,0,0), 0, 'mesma coordenada = 0 km');
+    ok(Math.abs(h(0,0,1,0) - 111.1949) < 0.1, '1° de latitude ≈ 111,19 km  (obtido ' + h(0,0,1,0).toFixed(4) + ')');
+    // ATENÇÃO: literal da base copiado de BASE_LONLAT (const não vai p/ window). Se mudar a base no index.html/harness, ATUALIZAR este valor.
+    const km = h(-23.4778015, -46.8063410, -23.494849, -46.800028); // base → R. Alberto Xavier de Toledo
+    ok(Math.abs(km - 2.0) < 0.15, 'base → R. Alberto Xavier de Toledo ≈ 2,0 km  (obtido ' + km.toFixed(2) + ')');
+  },
+
+  async 'T11 — trava: geocode > 30 km da base => a confirmar'() {
+    const via = { logradouro: 'Rua X', bairro: 'B', localidade: 'Osasco', uf: 'SP' };
+    const w = makeDom(routerFetch(via, [{ lat: '-8.79475', lon: '-63.88329' }])); // Porto Velho (~2500 km)
+    await typeCep(w, '06253230'); await tick(); await tick(); await tick();
+    eq(q(w, '#sumFrete').textContent, 'A confirmar pelo WhatsApp', 'coords > 30 km => frete a confirmar');
+  },
+
+  async 'T12 — trava: geocode vazio => a confirmar'() {
+    const via = { logradouro: 'Rua X', bairro: 'B', localidade: 'Osasco', uf: 'SP' };
+    const w = makeDom(routerFetch(via, [])); // Nominatim sem resultados
+    await typeCep(w, '06253230'); await tick(); await tick(); await tick();
+    eq(q(w, '#sumFrete').textContent, 'A confirmar pelo WhatsApp', 'geocode vazio => frete a confirmar');
   },
 };
 

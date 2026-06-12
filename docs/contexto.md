@@ -4,12 +4,12 @@
 > Reúne: estado atual, decisões, roadmap, **processo de trabalho** e **regras**.
 > **Deve ser atualizado antes do fim de cada sessão.**
 
-- **Última atualização:** Sessão 3
-- **Sessão atual:** 3
-- **Status geral:** **Parte 1 no ar. Entregas C+D em `8348624`, no ar.** **Parte 3 (frete endereço→ORS)
-  commitada em `de63ff0` e AGORA ativa no front:** a const `FRETE_URL` aponta ao `/exec` (backend
-  **Versão 5**, smoke test `{"ok":true,"km":10}`). A **gravação na planilha (Entrega E) segue DESLIGADA**
-  (`SHEETS_URL` vazia). Testes: backend 49/49 + front 42/42.
+- **Última atualização:** Sessão 4
+- **Sessão atual:** 4
+- **Status geral:** **Parte 1 no ar. Entregas C+D em `8348624`, no ar.** **Frete agora 100% no front**
+  (geocode **Nominatim** no navegador + distância em **linha reta/Haversine** até a base; ORS descartado).
+  **Backend limpo** (frete-ORS removido, **V8 no ar**) — só grava pedido (`doPost`) + healthcheck (`doGet`).
+  A **gravação na planilha (`doPost`, Entrega E) segue DESLIGADA** (`SHEETS_URL` vazia). Testes: front 48/48.
 
 ---
 
@@ -61,12 +61,11 @@ resta só o `caldodafanny`.
   WhatsApp: "Endereço: <rua>, <número>" + linha "Complemento" quando preenchido.
 - **Número (11) 93722-3540 e selo "Parque Imperial e Região":** confirmados **corretos no ar**
   (republicação feita; o desalinhamento antigo era da versão anterior do Netlify).
-- **Frete:** **implementado** — degraus por distância via ORS, com **fallback não-bloqueante**
-  ("a confirmar pelo WhatsApp"). **Geocodificação por ENDEREÇO** (não CEP puro): o front obtém o
-  endereço no ViaCEP (navegador) e **envia os 4 campos** (logradouro/bairro/localidade/uf) ao
-  backend via JSONP; o backend geocodifica o endereço na ORS. **Ativo no front** via a const
-  `FRETE_URL` → `/exec` (backend V5; smoke `{"ok":true,"km":10}`). `SHEETS_URL` segue vazia
-  (gravação na planilha = Entrega E, desligada).
+- **Frete:** **100% no front** (Sessão 4), com **fallback não-bloqueante** ("a confirmar pelo WhatsApp").
+  O navegador geocodifica o endereço no **Nominatim** (fetch/CORS, padrão ViaCEP) e mede a distância em
+  **LINHA RETA (Haversine)** até a base — **sem ORS, sem chamada ao backend**. Régua: ≤2 grátis / >2–3 R$4 /
+  >3–5 R$6 / >5 consultar. Travas: geocode vazio/erro/timeout ou >30 km → "a confirmar". (ORS descartado —
+  ver §3.) `SHEETS_URL` segue vazia (gravação na planilha = Entrega E, desligada).
 - **Sanitização:** fraca. Sem anti-fórmula no Sheets, sem honeypot (Entrega C).
 
 ---
@@ -78,13 +77,17 @@ resta só o `caldodafanny`.
 - **Múltiplos caldos (tipos diferentes):** confirmado — Entrega E.
 - **Endereço-base do frete:** **Rua Açucena, 175 — Parque Imperial, Barueri — CEP 06462520**
   (substitui a referência anterior, que tinha só o CEP de origem).
-- **Regra de frete (NOVA — por distância real em km):**
-  - até 3 km: **grátis**
-  - 3 a 4 km: **R$ 4,00**
-  - 4 a 5 km: **R$ 6,00**
-  - 5 a 6 km: **R$ 8,00**
-  - acima de 6 km: **consultar disponibilidade pelo WhatsApp** antes de finalizar
-  - *(a classificação antiga por bairros — próximas R$ 6 / médias R$ 8 — fica **DESCARTADA**.)*
+- **Regra de frete (Sessão 4 — por distância em LINHA RETA/Haversine):**
+  - até 2 km: **grátis**
+  - 2 a 3 km: **R$ 4,00**
+  - 3 a 5 km: **R$ 6,00**
+  - acima de 5 km: **consultar disponibilidade pelo WhatsApp** antes de finalizar
+  - *(fronteira sempre na faixa mais barata. A régua rodoviária antiga ≤3/≤4/≤5/≤6 e a classificação por bairros ficam **DESCARTADAS**.)*
+- **Geocode/distância (Sessão 4 — pivô D-front):** o cálculo de frete saiu do backend e foi **100% para o
+  navegador** — **Nominatim** geocodifica (fetch/CORS) e a distância é **linha reta (Haversine)**. **ORS
+  DESCARTADO** (geocode caía em centroide de cidade — `fallback`/`locality`) e Nominatim no backend deu
+  **HTTP 429** (IP do Google bloqueado, igual ViaCEP). As decisões de ORS abaixo (arquitetura ORS, JSONP,
+  geocode por endereço, `BASE_LONLAT` no backend) ficam **SUPERADAS** — mantidas só como histórico.
 - **Arquitetura do cálculo de distância (Entrega D):** API **OpenRouteService** (plano gratuito).
   A **chave NÃO fica no front-end.** Fluxo: navegador → **backend (Apps Script)** → OpenRouteService
   → devolve a distância. A chave fica guardada no backend, invisível no código público.
@@ -128,27 +131,21 @@ resta só o `caldodafanny`.
 | **A** | WhatsApp novo + máscara de telefone | ✅ **Concluída, aprovada e commitada** (`09b75d9`) |
 | **B** | Separar campos de endereço (rua / número / complemento-referência); ViaCEP preenche a rua; + scroll/foco ao 1º campo inválido | ✅ **Concluída e commitada** (`27c2caa`, 29/29) |
 | **C** | Segurança proporcional (anti-fórmula Sheets, validação/sanitização backend, limite de tamanho, honeypot) | ✅ **Commitada (`8348624`) e publicada** (origin/main; deploy automático no Netlify) — 43/43 testes puros |
-| **D** | Frete **por distância em km** (≤3 grátis / 3–4 R$4 / 4–5 R$6 / 5–6 R$8 / >6 consultar); distância via **OpenRouteService** (JSONP, chave protegida); **campo "Área de entrega" removido**; visual (card translúcido, logo, fundo→asset) | ✅ **Commitada (`8348624`) e publicada** — 42/42. **Frete reescrito p/ endereço→ORS (Parte 3) em `de63ff0`; ATIVADO no front (Sessão 3):** const `FRETE_URL` → `/exec` (V5, smoke `{"ok":true,"km":10}`). Backend 49/49 + front 42/42. *(A planilha — `doPost`/`SHEETS_URL` — segue na Entrega E.)* |
+| **D** | Frete **por distância em km** (Sessão 4: ≤2 grátis / >2–3 R$4 / >3–5 R$6 / >5 consultar — **linha reta/Haversine**); **campo "Área de entrega" removido**; visual (card translúcido, logo, fundo→asset) | ✅ **Commitada (`8348624`) e publicada**. **Sessão 4 — frete 100% no front (D-front):** geocode **Nominatim** no navegador + Haversine; **ORS descartado**; backend limpo (V8). Front **48/48**. *(A planilha — `doPost`/`SHEETS_URL` — segue na Entrega E.)* |
 | **E** | Múltiplos caldos (tipos diferentes) + preço por caldo + total; religar a planilha (incl. colunas para **número** e **complemento**) | Não iniciada |
 
 ---
 
 ## 5. Pendências (o que falta / depende de decisão)
 
-- **[Entrega E]** Religar a planilha: colar `SHEETS_URL` no front, conferir o cabeçalho de
-  **16 colunas (A1:P1)** já no backend (incl. CEP, Distância(km), Subtotal, Frete). As colunas de
-  `numero`/`complemento` (Entrega B) seguem fora do appendRow — decidir se entram aqui.
-  *(Resolvido em D: a coluna "Bairro" passa a ser alimentada pelo `bairro_cep` do ViaCEP.)*
+**A lista única de pendências vive em [`docs/backlog.md`](backlog.md).** Itens abertos: **P2/P3**
+(frete invisível + tela "Revisar Pedido"), **P4/P8** (múltiplos caldos + Entrega E: religar a planilha
+`SHEETS_URL`/`doPost`, cabeçalho de 16 colunas A1:P1, decidir colunas `numero`/`complemento`), **P5/P6**
+(ícone batata no Caldo de Mandioca; selo "ENTREGA GRÁTIS" estourado), **P7** (`inputmode="numeric"` no
+campo Número). *(P1 — frete — ✅ resolvido na Sessão 4.)*
 
-> ✅ **Resolvido nesta sessão:** push da Parte 1 + Netlify conectado ao GitHub com deploy
-> automático (site no ar em caldodafanny.netlify.app).
-
-### Melhorias de UX pendentes (antes do término do projeto)
-
-- **Campo Número — teclado numérico no mobile:** adicionar `inputmode="numeric"` (igual ao
-  campo CEP) para abrir só números no celular. Ressalva: o campo Número **não tem máscara de
-  propósito** (aceita "123A", "s/n"); o teclado numérico deve ser apenas o padrão, **sem impedir
-  esses casos** (o cliente pode alternar de teclado se precisar de letra). Melhoria de UX.
+- **`ORS_KEY` (Script Properties):** **obsoleta** desde a Sessão 4 (o frete saiu do backend). Limpeza
+  **opcional** — remover quando quiser; não afeta o código.
 
 ---
 
@@ -280,6 +277,16 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
 | `GUIA-INSTALACAO.md` | raiz | A dona (Fanny) | Manual de instalação/operação (leigo). | Conforme necessidade. |
 
 ## 10. Registro de sessões
+
+### Sessão 4
+- Bugs reportados em produção (teste real): frete errado fora do Parque Imperial, frete invisível antes de finalizar, falta de tela de revisão, múltiplos caldos não somam, ícone batata no mandioca, selo "ENTREGA GRÁTIS" estourado. Criado `docs/backlog.md` (P1–P8) como lista única de pendências.
+- **P1 (frete) diagnosticado e resolvido.** Causa: geocode do ORS caía em centroide de Osasco (`fallback`/`locality`); structured misto; texto casou Porto Velho/RO. Nominatim acertou as ruas.
+- Nominatim no backend (Apps Script) testado: **HTTP 429** (IP do Google bloqueado, igual ViaCEP). Inviável no servidor.
+- **Decisão: D-front** — geocode Nominatim no navegador (fetch/CORS) + distância em linha reta (Haversine). Sem ORS.
+- Frete reescrito no front (`index.html`): nova `BASE_LONLAT [lat,lon]` aprox. do CEP; `haversineKm`; `calcFrete` nova régua (≤2 grátis/>2–3 R$4/>3–5 R$6/>5 consultar); 2 travas (vazio/erro/timeout e >30 km → "a confirmar"); `FRETE_URL` removida.
+- Testes (`harness.html` + `run-tests.mjs`) sincronizados e reescritos (T8 nova tabela; T10 Haversine; T11 trava >30 km; T12 geocode vazio): **48/48**.
+- Backend limpo (V8): removidos frete-ORS (`geocodeEndereco_`/`distanciaKmDaBase_`/`montarEndereco_`/`orsKey_`/`BASE_LONLAT`) + diagnóstico temporário; `doGet` virou healthcheck; `doPost`/segurança/planilha intactos. `_testNominatim` apagado do editor. `ORS_KEY` obsoleta.
+- P2–P8 seguem abertos no backlog para as próximas sessões.
 
 ### Sessão 3
 - Sessão iniciada com a Parte 3 já commitada no backend (`de63ff0`).
