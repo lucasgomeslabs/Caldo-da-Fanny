@@ -160,7 +160,7 @@ const tests = {
     ok(msg.includes('*Bairro:* Sé'), 'mensagem com bairro do CEP');
     ok(msg.includes('• 1x Caldo Verde (Grande)'), 'mensagem com a linha do item');
     ok(msg.includes('*Subtotal:* R$ 28,00'), 'mensagem com Subtotal (Verde Grande)');
-    ok(msg.includes('*Frete:* Grátis (2 km)'), 'mensagem com Frete (grátis, 2 km)');
+    ok(msg.includes('*Frete:* Grátis (2,0 km)'), 'mensagem com Frete (grátis, 2,0 km)');
     ok(msg.includes('*Total:* R$ 28,00'), 'total com 1 item (R$ 28,00)');
     ok(/^#\d{3}$/.test(q(w, '#donePid').textContent), 'id do pedido no formato #NNN');
   },
@@ -244,6 +244,58 @@ const tests = {
     eq(q(w, '#q-verde-p').textContent, '0', 'minus em 0 mantém 0');
     addItem(w, 'verde-p', 25);                           // tenta passar de 20
     eq(q(w, '#q-verde-p').textContent, '20', 'plus respeita o teto 20');
+  },
+
+  async 'T15 — #done: resumo (itens + subtotal/frete/total) e aviso oculto'() {
+    const w = makeDom(okData);
+    w.fetchDistanciaKm = () => Promise.resolve(2);   // 2 km = frete grátis
+    addItem(w, 'frango-p', 1);   // 12,00
+    addItem(w, 'verde-g', 2);    // 56,00
+    await typeCep(w, '01001000'); await tick();
+    q(w, '[name="nome"]').value = 'Bia'; q(w, '[name="telefone"]').value = '11999990000';
+    q(w, '[name="endereco"]').value = 'Rua A'; q(w, '[name="numero"]').value = '1';
+    pick(w, '[name="pagamento"][value="PIX"]');
+    submit(w); await tick(); await tick();
+    const itensTxt = q(w, '#doneItens').textContent;
+    ok(itensTxt.includes('1x Caldo Cremoso de Frango (Pequeno)'), '#done lista o Frango Pequeno');
+    ok(itensTxt.includes('2x Caldo Verde (Grande)'), '#done lista o Verde Grande');
+    ok(itensTxt.includes('R$ 12,00') && itensTxt.includes('R$ 56,00'), '#done mostra preço por linha (12 e 56)');
+    eq(q(w, '#doneSub').textContent, 'R$ 68,00', '#done subtotal');
+    eq(q(w, '#doneFrete').textContent, 'Grátis', '#done frete sem km');
+    eq(q(w, '#doneTotal').textContent, 'R$ 68,00', '#done total');
+    eq(q(w, '#doneAviso').style.display, 'none', 'aviso oculto com frete normal');
+  },
+
+  async 'T16 — #done: aviso visível quando frete indefinido'() {
+    const w = makeDom(okData);
+    w.fetchDistanciaKm = () => Promise.reject(new Error('geocode down'));   // status indef
+    addItem(w, 'verde-g', 1);
+    await typeCep(w, '01001000'); await tick();
+    q(w, '[name="nome"]').value = 'Ana'; q(w, '[name="telefone"]').value = '11999998888';
+    q(w, '[name="endereco"]').value = 'Rua X'; q(w, '[name="numero"]').value = '10';
+    pick(w, '[name="pagamento"][value="PIX"]');
+    submit(w); await tick(); await tick();
+    eq(q(w, '#doneAviso').style.display, 'block', 'aviso visível com frete a confirmar');
+    eq(q(w, '#doneFrete').textContent, 'A confirmar pelo WhatsApp', '#done frete a confirmar (sem km)');
+  },
+
+  async 'T17 — "Refazer pedido" preserva dados e carrinho'() {
+    const w = makeDom(okData);
+    w.fetchDistanciaKm = () => Promise.resolve(2);
+    addItem(w, 'verde-g', 2);
+    await typeCep(w, '01001000'); await tick();
+    q(w, '[name="nome"]').value = 'Caio'; q(w, '[name="telefone"]').value = '11999991111';
+    q(w, '[name="endereco"]').value = 'Rua B'; q(w, '[name="numero"]').value = '7';
+    pick(w, '[name="pagamento"][value="PIX"]');
+    submit(w); await tick(); await tick();
+    eq(q(w, '#done').style.display, 'block', 'foi para a revisão');
+    q(w, '#again').click();
+    eq(q(w, '#form').style.display, 'block', 'voltou ao form');
+    eq(q(w, '#done').style.display, 'none', '#done escondido');
+    eq(q(w, '[name="nome"]').value, 'Caio', 'nome preservado');
+    eq(q(w, '[name="telefone"]').value, '11999991111', 'telefone preservado');
+    eq(q(w, '#q-verde-g').textContent, '2', 'carrinho preservado');
+    eq(q(w, '#btnText').textContent, 'REVISAR PEDIDO', 'btn restaurado para REVISAR PEDIDO');
   },
 };
 

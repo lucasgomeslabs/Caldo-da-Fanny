@@ -6,12 +6,13 @@
 
 - **Última atualização:** Sessão 5
 - **Sessão atual:** 5
-- **Status geral:** **Parte 1 no ar. Entregas C+D em `8348624`, no ar.** Frete 100% no front
-  (Nominatim + Haversine; ORS descartado). Backend limpo (**V8 no ar**) — só `doPost` + healthcheck `doGet`.
-  **Entrega E iniciada — E1 (carrinho) implementado no front** (working tree, ainda não commitado): 6 itens
-  (3 tipos × tamanhos P/G), preço por item, subtotal por soma, mensagem do WhatsApp em lista, **ícone SVG da
-  mandioca (P5)**. A **gravação na planilha (`doPost`, Entrega E2) segue DESLIGADA** (`SHEETS_URL` vazia).
-  Testes: front **56/56**.
+- **Status geral:** **Parte 1 no ar. Entregas C+D em `8348624`. E1 (carrinho) em `505065e`, no ar.**
+  Frete 100% no front (Nominatim + Haversine; ORS descartado). Backend limpo (**V8 no ar**) — só `doPost` +
+  healthcheck `doGet`. **Entrega E concluída no FRONT: E1 (carrinho — múltiplos caldos por tamanho, preço por
+  item, ícone SVG da mandioca/P5) + E2 (tela de revisão — `#done` lista itens + Subtotal/Frete/Total, botões
+  REVISAR PEDIDO / Confirmar Pedido, "Refazer pedido" sem apagar dados, aviso de frete a combinar; resolve P2/P3).**
+  Falta só a **parte backend da Entrega E — religar a planilha (`doPost`/`SHEETS_URL`, hoje vazia) e mapear
+  `data.itens`** (P8). Testes: front **72/72**.
 
 ---
 
@@ -134,16 +135,16 @@ resta só o `caldodafanny`.
 | **B** | Separar campos de endereço (rua / número / complemento-referência); ViaCEP preenche a rua; + scroll/foco ao 1º campo inválido | ✅ **Concluída e commitada** (`27c2caa`, 29/29) |
 | **C** | Segurança proporcional (anti-fórmula Sheets, validação/sanitização backend, limite de tamanho, honeypot) | ✅ **Commitada (`8348624`) e publicada** (origin/main; deploy automático no Netlify) — 43/43 testes puros |
 | **D** | Frete **por distância em km** (Sessão 4: ≤2 grátis / >2–3 R$4 / >3–5 R$6 / >5 consultar — **linha reta/Haversine**); **campo "Área de entrega" removido**; visual (card translúcido, logo, fundo→asset) | ✅ **Commitada (`8348624`) e publicada**. **Sessão 4 — frete 100% no front (D-front):** geocode **Nominatim** no navegador + Haversine; **ORS descartado**; backend limpo (V8). Front **48/48**. *(A planilha — `doPost`/`SHEETS_URL` — segue na Entrega E.)* |
-| **E** | Múltiplos caldos (tipos diferentes) + preço por caldo + total; religar a planilha (incl. colunas para **número** e **complemento**) | 🔄 **Em andamento.** **E1 (Sessão 5, no front, working tree):** carrinho de 6 itens (3 tipos × P/G), preço por item, subtotal por soma, msg do WhatsApp em lista; campo `qty` global e `PRICE` removidos; ícone SVG da mandioca (P5). Front **56/56**. **E2 — pendente:** religar a planilha (`SHEETS_URL`/`doPost`) e mapear a nova estrutura `data.itens` (lista) para colunas. |
+| **E** | Múltiplos caldos (tipos diferentes) + preço por caldo + total; religar a planilha (incl. colunas para **número** e **complemento**) | 🔄 **Front concluído; planilha pendente.** **E1 (`505065e`):** carrinho de 6 itens (3 tipos × P/G), preço por item, subtotal por soma, msg do WhatsApp em lista; `qty`/`PRICE` globais removidos; ícone SVG da mandioca (P5). **E2 (Sessão 5):** `#done` virou tela de revisão (lista itens + Subtotal/Frete/Total, Total em destaque), botões "REVISAR PEDIDO"/"Confirmar Pedido", "Refazer pedido" sem wipe, aviso de frete a combinar (resolve P2/P3). Front **72/72**. **Pendente (P8):** religar a planilha (`SHEETS_URL`/`doPost`) e mapear `data.itens`. |
 
 ---
 
 ## 5. Pendências (o que falta / depende de decisão)
 
-**A lista única de pendências vive em [`docs/backlog.md`](backlog.md).** Itens abertos: **P2/P3**
-(frete invisível + tela "Revisar Pedido"), **P8/E2** (religar a planilha `SHEETS_URL`/`doPost` e mapear
-`data.itens`), **P6** (selo "ENTREGA GRÁTIS" estourado), **P7** (`inputmode="numeric"` no campo Número).
-*(✅ resolvidos: P1 frete — Sessão 4; **P4 múltiplos caldos no front e P5 ícone da mandioca — Sessão 5, E1**.)*
+**A lista única de pendências vive em [`docs/backlog.md`](backlog.md).** Itens abertos: **P8** (parte backend
+da Entrega E: religar a planilha `SHEETS_URL`/`doPost` e mapear `data.itens`), **P6** (selo "ENTREGA GRÁTIS"
+estourado — fact-finding feito, correção adiada p/ próxima sessão), **P7** (`inputmode="numeric"` no campo Número).
+*(✅ resolvidos: P1 frete — Sessão 4; **P4 múltiplos caldos + P5 ícone — Sessão 5 (E1); P2/P3 frete visível + tela de revisão — Sessão 5 (E2)**.)*
 
 - **`ORS_KEY` (Script Properties):** **obsoleta** desde a Sessão 4 (o frete saiu do backend). Limpeza
   **opcional** — remover quando quiser; não afeta o código.
@@ -294,9 +295,21 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
 - **Frete na tela sem km (só renderização):** o `#freteInfo` deixou de exibir "(X km)" na tela (o cliente vê só
   "Frete — R$ 4,00" / "Grátis"). O km **continua** na mensagem do WhatsApp (uso operacional) e `freteState.km`/o
   cálculo da faixa **não** mudaram. Mudança isolada no `recalc()` (index + harness); nenhum teste afetado.
-- **`data.itens` × backend:** a gravação na planilha (E2) terá de mapear a nova lista — registrado em P8 (segue desligado, `SHEETS_URL=""`).
+- **`data.itens` × backend:** a gravação na planilha (parte backend da Entrega E / P8) terá de mapear a nova lista — segue desligado (`SHEETS_URL=""`).
 - **Skill cross-projeto `concise-by-default`** criada em `~/.claude/skills/` (fora do repo; não versionada).
-- **Plano de P2/P3 (tela de revisão) elaborado** numa tarefa anterior desta sessão, mas **não implementado** (segue aberto no backlog).
+- **Entrega E2 — tela de revisão (frontend), implementada, testada (72/72) e aprovada no navegador:** a `#done`
+  deixou de ser só "pedido recebido" e virou **revisão antes de confirmar** — título "REVISE SEU PEDIDO"
+  (centralizado), resumo com a lista de itens (`qtd x Tipo (Tamanho)` + preço por linha) + Subtotal/Frete/Total
+  (Total em destaque), preenchido no submit sem recalcular. Botões: `#btnText` → **"REVISAR PEDIDO"**, `#waLink`
+  → **"Confirmar Pedido"** (abre `wa.me` só no clique). **"Refazer pedido"** volta à home **sem apagar** dados nem
+  carrinho (handler sem `form.reset()`/wipe). **Aviso condicional** "Frete a combinar pelo WhatsApp — o total pode
+  mudar." quando `freteState.status` é `indef`/`consultar`. **Resolve P2 e P3.**
+- **Ajustes finais da E2:** título da `#done` centralizado (`justify-content:center` — o `.card h2` herdava
+  `display:flex` e empurrava à esquerda); **km na mensagem do WhatsApp arredondado a 1 casa BR** (ex.: `(2,5 km)`);
+  confirmado **nenhum km em tela** (só na mensagem). Testes **+T15/T16/T17**; T7 ajustado p/ `(2,0 km)`.
+- **P6 (selo "ENTREGA GRÁTIS" estourado):** fact-finding feito (causa: círculo fixo 108px + textos px sem ajuste);
+  **correção adiada para a próxima sessão** (decisão: encurtar "PARQUE IMPERIAL!" → "PQ IMPERIAL"; não implementado
+  para não misturar com o commit da E2).
 
 ### Sessão 4
 - Bugs reportados em produção (teste real): frete errado fora do Parque Imperial, frete invisível antes de finalizar, falta de tela de revisão, múltiplos caldos não somam, ícone batata no mandioca, selo "ENTREGA GRÁTIS" estourado. Criado `docs/backlog.md` (P1–P8) como lista única de pendências.

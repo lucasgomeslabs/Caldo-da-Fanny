@@ -65,13 +65,20 @@
 
   <div class="field"><label>Observações</label><textarea name="obs"></textarea></div>
 
-  <button type="submit" class="send" id="submitBtn"><span id="btnText">PEÇA PELO WHATSAPP</span></button>
+  <button type="submit" class="send" id="submitBtn"><span id="btnText">REVISAR PEDIDO</span></button>
 </form>
 
 <div class="card done" id="done" style="display:none">
   <div class="pid" id="donePid">#001</div>
-  <a class="wa-btn" id="waLink" href="#" target="_blank" rel="noopener">Confirmar no WhatsApp</a>
-  <button class="again" id="again">Fazer outro pedido</button>
+  <div class="total" id="doneResumo">
+    <div id="doneItens"></div>
+    <div class="rline"><span class="rlbl">Subtotal</span><span class="rval" id="doneSub"></span></div>
+    <div class="rline"><span class="rlbl">Frete</span><span class="rval" id="doneFrete"></span></div>
+    <div class="rline total-line"><span class="rlbl">Total</span><span class="rval rbig" id="doneTotal"></span></div>
+  </div>
+  <a class="wa-btn" id="waLink" href="#" target="_blank" rel="noopener">Confirmar Pedido</a>
+  <p class="done-aviso" id="doneAviso" style="display:none">Frete a combinar pelo WhatsApp — o total pode mudar.</p>
+  <button class="again" id="again">Refazer pedido</button>
 </div>
 
 <script>
@@ -142,8 +149,8 @@ let freteState={status:'indef',km:null,valor:0};
 function resumoAtual(){
   const sub=cartSubtotal(); const k=freteState.km;
   let freteTxt, totalNum=null, info='';
-  if(freteState.status==='gratis'){ freteTxt='Grátis'; totalNum=sub; if(k!=null) info='('+k+' km)'; }
-  else if(freteState.status==='pago'){ freteTxt=fmt(freteState.valor); totalNum=sub+freteState.valor; if(k!=null) info='('+k+' km)'; }
+  if(freteState.status==='gratis'){ freteTxt='Grátis'; totalNum=sub; if(k!=null) info='('+k.toFixed(1).replace('.',',')+' km)'; }
+  else if(freteState.status==='pago'){ freteTxt=fmt(freteState.valor); totalNum=sub+freteState.valor; if(k!=null) info='('+k.toFixed(1).replace('.',',')+' km)'; }
   else if(freteState.status==='consultar'){ freteTxt='Consultar pelo WhatsApp'; info='(> 5 km)'; }
   else if(freteState.status==='buscando'){ freteTxt='Calculando…'; }
   else { freteTxt='A confirmar pelo WhatsApp'; }
@@ -358,17 +365,24 @@ $('#form').addEventListener('submit', async (e)=>{
 '*Horário:* '+data.horario;
   const wa='https://wa.me/'+WHATSAPP+'?text='+encodeURIComponent(msg);
   $('#waLink').href=wa; $('#donePid').textContent=pid;
+  const cont=$('#doneItens'); cont.textContent='';
+  data.itens.forEach(i=>{
+    const row=document.createElement('div'); row.className='rline';
+    const l=document.createElement('span'); l.className='rlbl'; l.textContent=i.qtd+'x '+i.tipo+' ('+i.tamanho+')';
+    const v=document.createElement('span'); v.className='rval'; v.textContent=fmt(i.preco*i.qtd);
+    row.append(l,v); cont.appendChild(row);
+  });
+  $('#doneSub').textContent=data.subtotal;
+  $('#doneFrete').textContent=resumo.freteTxt;
+  $('#doneTotal').textContent=data.total;
+  $('#doneAviso').style.display=(freteState.status==='indef'||freteState.status==='consultar')?'block':'none';
   $('#form').style.display='none'; $('#done').style.display='block';
   window.scrollTo({top:0,behavior:'smooth'});
 });
 $('#again').onclick=()=>{
-  $('#form').reset();
-  document.querySelectorAll('.sel').forEach(x=>x.classList.remove('sel'));
-  CARDAPIO.forEach(i=>{ qtd[i.id]=0; const s=document.getElementById('q-'+i.id); if(s) s.textContent='0'; });
-  $('#err-caldo').style.display='none';
-  resetCep(); recalc();
   $('#done').style.display='none'; $('#form').style.display='block';
-  $('#submitBtn').disabled=false; $('#btnText').textContent='PEÇA PELO WHATSAPP';
+  $('#submitBtn').disabled=false; $('#btnText').textContent='REVISAR PEDIDO';
+  window.scrollTo({top:0,behavior:'smooth'});
 };
 recalc();
 </script>

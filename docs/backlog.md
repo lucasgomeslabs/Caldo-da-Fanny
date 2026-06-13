@@ -4,8 +4,8 @@
 > entre sessões. Atualizar ao fim de cada sessão (junto com o contexto.md). Origem anotada.
 
 ## Prioridade sugerida
-Revisar Pedido (P2/P3) → ~~Entrega E / múltiplos caldos (P4/P8)~~ **E1 feito; falta E2 (planilha, P8)** →
-visuais (~~P5~~ **feito** / P6 selo) e UX (P7).
+~~Revisar Pedido (P2/P3)~~ **feito (E2)** → ~~múltiplos caldos (P4)~~ **feito (E1)** →
+**religar planilha (P8)** → visuais (~~P5~~ **feito** / P6 selo) e UX (P7).
 
 ## Funcionais — frete e pedido
 
@@ -27,33 +27,33 @@ em outro; o modo texto casou uma rua de **Porto Velho/RO** com `confidence:1`.
 > Google bloqueado (mesma parede do ViaCEP) → Nominatim no front (navegador, IP do cliente) →
 > funciona. Lição: roteador errando distância = entrada malformada, não "serviço ruim".
 
-### P2 — Frete invisível para o cliente antes de finalizar
-O valor do frete não aparece no site antes do envio — o cliente confirma sem ver frete nem total.
-**Resolvido junto com P3** (a tela de revisão exibe frete + total). *(Reportado: Sessão 3.)*
+### P2 — Frete invisível para o cliente antes de finalizar ✅ RESOLVIDO (Sessão 5, E2)
+O valor do frete não aparecia antes do envio. **Resolvido junto com P3:** a tela de revisão (`#done`) exibe
+itens + Subtotal/Frete/Total antes de confirmar. *(Reportado: Sessão 3.)*
 
-### P3 — Tela "Revisar Pedido"
-Hoje o cliente preenche e clica em "Peça pelo WhatsApp", que já é a confirmação de fato — sem ver
-frete nem total no site. Fluxo a implementar:
-1. Cliente preenche todos os campos.
-2. Após "Observações", botão **"Finalizar Pedido"** → **tela de revisão**.
-3. Resumo com: número do pedido; o pedido completo (itens); nome; telefone; endereço (conferir);
-   **valor do frete**; **total**.
-4. Botão **"Finalizar Pedido"** que leva **direto ao WhatsApp**.
-Resolve junto o P2. *(Seu pedido; fila de melhorias do front, resumo-sessao-2 §5/§6.)*
-*(A decidir na execução: nomes distintos para os dois botões; e se o nº do pedido é gerado na revisão ou no envio.)*
+### P3 — Tela "Revisar Pedido" ✅ RESOLVIDO (Sessão 5, E2)
+**Resolvido:** a `#done` (antes só "pedido recebido") virou **tela de revisão**. Fluxo atual:
+1. Cliente preenche os dados e o carrinho.
+2. Botão **"REVISAR PEDIDO"** (antigo "PEÇA PELO WHATSAPP") → `#done` em modo revisão.
+3. Resumo: nº do pedido, itens (`qtd x Tipo (Tamanho)` + preço por linha), Subtotal, Frete, Total (em destaque).
+   *(Nome/endereço não são re-exibidos no resumo — ficam no form, que "Refazer pedido" preserva para edição.)*
+4. **"Confirmar Pedido"** (link `wa.me`, abre só no clique) leva ao WhatsApp; **"Refazer pedido"** volta ao form
+   **sem apagar** dados/carrinho. Resolve junto o P2.
+*(Divergência registrada do plano original: reusou-se a `#done` com **um** botão "REVISAR PEDIDO" em vez de um
+"Finalizar Pedido" separado; o nº do pedido segue gerado no envio.)*
 
 ### P4 — Múltiplos caldos de tipos diferentes não somam ✅ RESOLVIDO no front (Sessão 5, E1)
 O site **alternava** o tipo de caldo em vez de **somar** — só dava para pedir vários do mesmo tipo.
 **Resolvido (E1):** carrinho de 6 itens (3 tipos × 2 tamanhos), preço por item, subtotal por soma,
 mensagem do WhatsApp em N linhas. *(Reportado: Sessão 3.)* A **gravação na planilha** dessa nova
-estrutura segue em P8 (E2). *(Resolvido no front; planilha pendente.)*
+estrutura segue em P8 (parte backend da Entrega E). *(Resolvido no front; planilha pendente.)*
 
 ## Funcionais — backend/dados
 
-### P8 — Entrega E (planilha + preços) — PARCIAL (E1 feito no front; E2 pendente)
-**E1 (Sessão 5, no front):** preço por item e múltiplos caldos (P4) já implementados — ver carrinho
-em `frontend/index.html` (`CARDAPIO`/`data.itens`).
-**E2 — pendente:** religar a gravação na planilha (`SHEETS_URL`/`doPost`, hoje desligado de propósito);
+### P8 — Entrega E (planilha + preços) — PARCIAL (front feito: E1+E2; planilha pendente)
+**Front (Sessão 5):** múltiplos caldos/preço por item (E1) e tela de revisão (E2) prontos — ver
+`frontend/index.html` (`CARDAPIO`/`data.itens`).
+**Planilha (parte backend, pendente):** religar a gravação (`SHEETS_URL`/`doPost`, hoje desligado de propósito);
 mapear a nova estrutura `data.itens` (lista) para colunas; conferir/rever o cabeçalho (hoje 16 colunas
 A1:P1 com `caldo`/`qtde` únicos — precisa repensar p/ N itens); decidir se `numero`/`complemento`
 entram no `appendRow`. *(Roadmap, Entrega E.)*
