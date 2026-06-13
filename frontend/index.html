@@ -94,19 +94,6 @@
     box-shadow:0 0 0 4px rgba(245,166,35,.18)}
 
   .menu{display:grid;gap:10px}
-  .item{display:flex;align-items:center;gap:13px;background:#fff;border:1.5px solid #e3c9a3;
-    border-radius:14px;padding:12px 14px;cursor:pointer;transition:.16s}
-  .item:hover{border-color:var(--gold-deep);transform:translateY(-1px)}
-  .item input{display:none}
-  .item .emo{font-size:27px;flex-shrink:0;width:34px;text-align:center}
-  .item .info{flex:1}
-  .item .nm{font-weight:600;font-size:15px}
-  .item .pr{font-size:13px;color:var(--herb);font-weight:700}
-  .item .tick{width:22px;height:22px;border-radius:50%;border:2px solid #e3c9a3;flex-shrink:0;
-    display:grid;place-items:center;transition:.16s}
-  .item.sel{border-color:var(--broth);background:#fff6ec;box-shadow:0 6px 16px -8px rgba(193,68,14,.4)}
-  .item.sel .tick{background:var(--broth);border-color:var(--broth)}
-  .item.sel .tick::after{content:"✓";color:#fff;font-size:13px;font-weight:700}
 
   .pill-group{display:flex;gap:8px;flex-wrap:wrap}
   .pill{flex:1;min-width:64px;text-align:center;background:#fff;border:1.5px solid #e3c9a3;
@@ -121,6 +108,21 @@
     cursor:pointer;font-weight:700;transition:.12s}
   .qty button:hover{background:#f7e6cc}
   .qty span{width:54px;text-align:center;font-size:18px;font-weight:700}
+
+  /* ===== CARRINHO (Entrega E): blocos por tipo + linhas de tamanho ===== */
+  .ctype{margin-bottom:14px}
+  .ctype + .ctype{border-top:1px solid var(--line);padding-top:14px}
+  .ctype-head{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+  .ctype-head .emo{font-size:24px;width:30px;text-align:center;flex-shrink:0}
+  .ctype-head .nm{font-weight:700;font-size:15.5px}
+  .ctype-desc{font-size:12.5px;color:#8a6d4f;margin:0 0 10px;padding-left:40px}
+  .size-row{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #e3c9a3;
+    border-radius:14px;padding:9px 12px;margin-bottom:8px}
+  .size-info{flex:1;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px}
+  .size-info .size-nm{font-weight:600;font-size:14.5px}
+  .size-info .size-vol{font-size:12.5px;color:#8a6d4f}
+  .size-info .size-pr{font-weight:700;font-size:13.5px;color:var(--herb)}
+  .emoji{width:1.2em;height:1.2em;vertical-align:-0.2em}
 
   .total{background:linear-gradient(180deg,#fff6ec,#fdeedb);border:1px dashed var(--gold-deep);
     border-radius:14px;padding:12px 16px;margin:4px 0 18px}
@@ -227,40 +229,53 @@
     </div>
 
     <h2><span class="num">1</span> Seu pedido</h2>
-    <p class="sub">Escolha o caldo</p>
+    <p class="sub">Escolha seus caldos e tamanhos</p>
     <div class="menu" id="menu">
-      <label class="item">
-        <input type="radio" name="caldo" value="Caldo Verde" data-price="24.90" required>
-        <span class="emo">🥬</span>
-        <span class="info"><span class="nm">Caldo Verde</span><br><span class="pr">R$ 24,90</span></span>
-        <span class="tick"></span>
-      </label>
-      <label class="item">
-        <input type="radio" name="caldo" value="Caldo de Mandioca" data-price="24.90">
-        <span class="emo">🥔</span>
-        <span class="info"><span class="nm">Caldo de Mandioca</span><br><span class="pr">R$ 24,90</span></span>
-        <span class="tick"></span>
-      </label>
-      <label class="item">
-        <input type="radio" name="caldo" value="Caldo Cremoso de Frango" data-price="24.90">
-        <span class="emo">🍗</span>
-        <span class="info"><span class="nm">Caldo Cremoso de Frango</span><br><span class="pr">R$ 24,90</span></span>
-        <span class="tick"></span>
-      </label>
-    </div>
-    <div class="err" id="err-caldo">Escolha um caldo.</div>
 
-    <div class="field" style="margin-top:18px">
-      <label>Quantidade</label>
-      <div class="qty">
-        <button type="button" id="minus">−</button>
-        <span id="qtyVal">1</span>
-        <button type="button" id="plus">+</button>
+      <div class="ctype">
+        <div class="ctype-head"><span class="emo">🍗</span><span class="nm">Caldo Cremoso de Frango</span></div>
+        <p class="ctype-desc">Descrição em breve</p>
+        <div class="size-row">
+          <div class="size-info"><span class="size-nm">Pequeno</span><span class="size-vol">250 ml</span><span class="size-pr">R$ 12,00</span></div>
+          <div class="qty"><button type="button" class="minus" data-id="frango-p">−</button><span class="qval" id="q-frango-p">0</span><button type="button" class="plus" data-id="frango-p">+</button></div>
+        </div>
+        <div class="size-row">
+          <div class="size-info"><span class="size-nm">Grande</span><span class="size-vol">500 ml</span><span class="size-pr">R$ 22,00</span></div>
+          <div class="qty"><button type="button" class="minus" data-id="frango-g">−</button><span class="qval" id="q-frango-g">0</span><button type="button" class="plus" data-id="frango-g">+</button></div>
+        </div>
       </div>
+
+      <div class="ctype">
+        <div class="ctype-head"><span class="emo"><img src="assets/emoji-mandioca.svg" class="emoji" alt="Mandioca"></span><span class="nm">Caldo de Mandioca</span></div>
+        <p class="ctype-desc">Descrição em breve</p>
+        <div class="size-row">
+          <div class="size-info"><span class="size-nm">Pequeno</span><span class="size-vol">250 ml</span><span class="size-pr">R$ 14,00</span></div>
+          <div class="qty"><button type="button" class="minus" data-id="mandioca-p">−</button><span class="qval" id="q-mandioca-p">0</span><button type="button" class="plus" data-id="mandioca-p">+</button></div>
+        </div>
+        <div class="size-row">
+          <div class="size-info"><span class="size-nm">Grande</span><span class="size-vol">500 ml</span><span class="size-pr">R$ 26,00</span></div>
+          <div class="qty"><button type="button" class="minus" data-id="mandioca-g">−</button><span class="qval" id="q-mandioca-g">0</span><button type="button" class="plus" data-id="mandioca-g">+</button></div>
+        </div>
+      </div>
+
+      <div class="ctype">
+        <div class="ctype-head"><span class="emo">🥬</span><span class="nm">Caldo Verde</span></div>
+        <p class="ctype-desc">Descrição em breve</p>
+        <div class="size-row">
+          <div class="size-info"><span class="size-nm">Pequeno</span><span class="size-vol">250 ml</span><span class="size-pr">R$ 15,00</span></div>
+          <div class="qty"><button type="button" class="minus" data-id="verde-p">−</button><span class="qval" id="q-verde-p">0</span><button type="button" class="plus" data-id="verde-p">+</button></div>
+        </div>
+        <div class="size-row">
+          <div class="size-info"><span class="size-nm">Grande</span><span class="size-vol">500 ml</span><span class="size-pr">R$ 28,00</span></div>
+          <div class="qty"><button type="button" class="minus" data-id="verde-g">−</button><span class="qval" id="q-verde-g">0</span><button type="button" class="plus" data-id="verde-g">+</button></div>
+        </div>
+      </div>
+
     </div>
+    <div class="err" id="err-caldo">Escolha pelo menos um caldo.</div>
 
     <div class="total" id="resumo">
-      <div class="rline"><span class="rlbl">Subtotal</span><span class="rval" id="sumSub">R$ 24,90</span></div>
+      <div class="rline"><span class="rlbl">Subtotal</span><span class="rval" id="sumSub">R$ 0,00</span></div>
       <div class="rline"><span class="rlbl">Frete <span class="rinfo" id="freteInfo"></span></span><span class="rval" id="sumFrete">A confirmar</span></div>
       <div class="rline total-line"><span class="rlbl">Total</span><span class="rval rbig" id="sumTotal">A confirmar</span></div>
     </div>
@@ -375,16 +390,35 @@ const WHATSAPP = "5511937223540";
 const SHEETS_URL = ""; // cole aqui a URL .../exec do Apps Script
 /* ======================================================= */
 
-const PRICE = 24.90;
-let qty = 1;
 const $ = s => document.querySelector(s);
 const fmt = n => "R$ " + n.toFixed(2).replace(".", ",");
 
-document.querySelectorAll('#menu .item').forEach(it=>{
-  it.addEventListener('click',()=>{
-    document.querySelectorAll('#menu .item').forEach(x=>x.classList.remove('sel'));
-    it.classList.add('sel'); $('#err-caldo').style.display='none'; recalc();
-  });
+/* ===================== CARRINHO (Entrega E) ===================== */
+// Cardápio = 3 tipos × 2 tamanhos. Cada item tem id, preço e quantidade próprios.
+const CARDAPIO = [
+  {id:'frango-p',   tipo:'Caldo Cremoso de Frango', tamanho:'Pequeno', volume:'250ml', preco:12.00},
+  {id:'frango-g',   tipo:'Caldo Cremoso de Frango', tamanho:'Grande',  volume:'500ml', preco:22.00},
+  {id:'mandioca-p', tipo:'Caldo de Mandioca',       tamanho:'Pequeno', volume:'250ml', preco:14.00},
+  {id:'mandioca-g', tipo:'Caldo de Mandioca',       tamanho:'Grande',  volume:'500ml', preco:26.00},
+  {id:'verde-p',    tipo:'Caldo Verde',             tamanho:'Pequeno', volume:'250ml', preco:15.00},
+  {id:'verde-g',    tipo:'Caldo Verde',             tamanho:'Grande',  volume:'500ml', preco:28.00},
+];
+const qtd = {}; CARDAPIO.forEach(i=>qtd[i.id]=0);            // estado: id -> quantidade (0..20)
+function cartItens(){ return CARDAPIO.filter(i=>qtd[i.id]>0).map(i=>({id:i.id,tipo:i.tipo,tamanho:i.tamanho,volume:i.volume,preco:i.preco,qtd:qtd[i.id]})); }
+function cartCount(){ return CARDAPIO.reduce((s,i)=>s+qtd[i.id],0); }
+function cartSubtotal(){ return CARDAPIO.reduce((s,i)=>s+i.preco*qtd[i.id],0); }
+
+// Steppers por item (delegação no #menu): cada [-]/[+] mexe na qtd daquele id.
+function setQty(id, delta){
+  if(!(id in qtd)) return;
+  qtd[id]=Math.min(20,Math.max(0,qtd[id]+delta));   // clamp 0..20
+  const span=document.getElementById('q-'+id); if(span) span.textContent=qtd[id];
+  if(cartCount()>0) $('#err-caldo').style.display='none';
+  recalc();
+}
+$('#menu').addEventListener('click',(e)=>{
+  const b=e.target.closest('.plus,.minus'); if(!b) return;
+  setQty(b.dataset.id, b.classList.contains('plus')?1:-1);
 });
 ['#pgto'].forEach(g=>{
   document.querySelectorAll(g+' .pill').forEach(p=>{
@@ -418,7 +452,7 @@ function haversineKm(lat1,lon1,lat2,lon2){
 }
 let freteState={status:'indef',km:null,valor:0};   // idle/sem CEP/erro = indef (NÃO bloqueia)
 function resumoAtual(){
-  const sub=PRICE*qty; const k=freteState.km;
+  const sub=cartSubtotal(); const k=freteState.km;
   let freteTxt, totalNum=null, info='';
   if(freteState.status==='gratis'){ freteTxt='Grátis'; totalNum=sub; if(k!=null) info='('+k+' km)'; }
   else if(freteState.status==='pago'){ freteTxt=fmt(freteState.valor); totalNum=sub+freteState.valor; if(k!=null) info='('+k+' km)'; }
@@ -431,10 +465,9 @@ function resumoAtual(){
 }
 function recalc(){
   const r=resumoAtual();
-  $('#qtyVal').textContent=qty;
   $('#sumSub').textContent=r.subTxt;
   $('#sumFrete').textContent=r.freteTxt;
-  $('#freteInfo').textContent=r.info;
+  $('#freteInfo').textContent='';   // km NÃO vai à tela; segue só na msg do WhatsApp (resumo.info)
   $('#sumTotal').textContent=r.totalTxt;
 }
 /* Camada MOCKÁVEL (mesmo padrão do ViaCEP): nos testes, sobrescreva window.fetchDistanciaKm.
@@ -479,8 +512,7 @@ async function lookupFrete(cep,logradouro,bairro,localidade,uf){
 }
 function resetFrete(){ lastCepFrete=''; freteState={status:'indef',km:null,valor:0}; }
 /* ========================================================================== */
-$('#plus').onclick=()=>{ if(qty<20){qty++;recalc();} };
-$('#minus').onclick=()=>{ if(qty>1){qty--;recalc();} };
+/* steppers por item: tratados por delegação em #menu (ver setQty acima) */
 document.querySelectorAll('#form input,#form textarea').forEach(el=>{
   el.addEventListener('input',()=>el.closest('.field')?.classList.remove('invalid'));
 });
@@ -570,7 +602,7 @@ function validate(){
   if(tel.length<10){ document.querySelector('[name="telefone"]').closest('.field').classList.add('invalid'); ok=false; }
   const cepDig=document.querySelector('[name="cep"]').value.replace(/\D/g,'');
   if(cepDig.length!==8){ document.querySelector('[name="cep"]').closest('.field').classList.add('invalid'); ok=false; }
-  if(!document.querySelector('[name="caldo"]:checked')){ $('#err-caldo').style.display='block'; ok=false; }
+  if(cartCount()<1){ $('#err-caldo').style.display='block'; ok=false; }
   if(!document.querySelector('[name="pagamento"]:checked')){ $('#err-pgto').style.display='block'; ok=false; }
   return ok;
 }
@@ -609,8 +641,7 @@ $('#form').addEventListener('submit', async (e)=>{
     bairro_cep:document.querySelector('[name="bairro_cep"]').value.trim(),
     cidade:document.querySelector('[name="cidade"]').value.trim(),
     uf:document.querySelector('[name="uf"]').value.trim().toUpperCase(),
-    caldo:document.querySelector('[name="caldo"]:checked').value,
-    qtde:qty,
+    itens:cartItens(),
     pagamento:document.querySelector('[name="pagamento"]:checked').value,
     obs:document.querySelector('[name="obs"]').value.trim(),
     km:resumo.km,
@@ -638,7 +669,7 @@ $('#form').addEventListener('submit', async (e)=>{
 ((data.cidade||data.uf)?'*Cidade/UF:* '+data.cidade+(data.uf?'/'+data.uf:'')+'\n':'')+
 (data.cep?'*CEP:* '+data.cep.slice(0,5)+'-'+data.cep.slice(5)+'\n':'')+
 '————————————\n'+
-'*Pedido:* '+data.qtde+'x '+data.caldo+'\n'+
+'*Pedido:*\n'+data.itens.map(i=>'• '+i.qtd+'x '+i.tipo+' ('+i.tamanho+')').join('\n')+'\n'+
 '*Pagamento:* '+data.pagamento+'\n'+
 (data.obs?'*Obs.:* '+data.obs+'\n':'')+
 '*Subtotal:* '+data.subtotal+'\n'+
@@ -653,7 +684,9 @@ $('#form').addEventListener('submit', async (e)=>{
 $('#again').onclick=()=>{
   $('#form').reset();
   document.querySelectorAll('.sel').forEach(x=>x.classList.remove('sel'));
-  qty=1; resetCep(); recalc();
+  CARDAPIO.forEach(i=>{ qtd[i.id]=0; const s=document.getElementById('q-'+i.id); if(s) s.textContent='0'; });
+  $('#err-caldo').style.display='none';
+  resetCep(); recalc();
   $('#done').style.display='none'; $('#form').style.display='block';
   $('#submitBtn').disabled=false; $('#btnText').textContent='PEÇA PELO WHATSAPP';
 };

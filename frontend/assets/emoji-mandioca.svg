@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Mandioca">
+  <title>Mandioca</title>
+  <defs>
+    <linearGradient id="skin" x1="25" y1="20" x2="95" y2="110" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9a6a3a"/>
+      <stop offset="0.55" stop-color="#7a4f2a"/>
+      <stop offset="1" stop-color="#5f3a1f"/>
+    </linearGradient>
+    <linearGradient id="cut" x1="42" y1="28" x2="86" y2="95" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff4ca"/>
+      <stop offset="1" stop-color="#f0d98d"/>
+    </linearGradient>
+  </defs>
+
+  <!-- folha -->
+  <g transform="translate(70 20) rotate(-18)">
+    <path d="M5 22 C4 7 15 1 24 0 C23 12 16 20 5 22Z" fill="#3f8f3f"/>
+    <path d="M8 23 C15 12 20 5 24 0" fill="none" stroke="#2f6f2f" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(55 18) rotate(12)">
+    <path d="M6 24 C3 9 12 1 24 1 C24 13 17 23 6 24Z" fill="#4fa64f"/>
+    <path d="M8 24 C14 12 20 5 24 1" fill="none" stroke="#347a34" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <!-- mandioca raiz -->
+  <path d="M35 22 C23 31 20 51 27 73 C35 100 57 118 80 111 C99 105 104 84 94 62 C82 35 57 8 35 22Z"
+        fill="url(#skin)" stroke="#4b2e18" stroke-width="4" stroke-linejoin="round"/>
+  <!-- parte cortada clara -->
+  <path d="M41 29 C33 37 31 52 36 68 C43 91 61 104 78 100 C91 96 94 82 86 65 C77 45 57 20 41 29Z"
+        fill="url(#cut)" opacity="0.92"/>
+  <!-- ranhuras -->
+  <path d="M34 47 C45 43 57 40 70 42" fill="none" stroke="#6d4324" stroke-width="4" stroke-linecap="round" opacity=".55"/>
+  <path d="M36 66 C50 61 68 61 84 66" fill="none" stroke="#6d4324" stroke-width="4" stroke-linecap="round" opacity=".55"/>
+  <path d="M46 86 C57 84 68 86 78 92" fill="none" stroke="#6d4324" stroke-width="4" stroke-linecap="round" opacity=".5"/>
+
+  <!-- brilho estilo emoji -->
+  <path d="M42 35 C36 43 35 53 39 66" fill="none" stroke="#fff8d8" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+</svg>

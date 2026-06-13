@@ -4,7 +4,8 @@
 > entre sessões. Atualizar ao fim de cada sessão (junto com o contexto.md). Origem anotada.
 
 ## Prioridade sugerida
-Revisar Pedido (P2/P3) → Entrega E / múltiplos caldos (P4/P8) → visuais (P5/P6) e UX (P7).
+Revisar Pedido (P2/P3) → ~~Entrega E / múltiplos caldos (P4/P8)~~ **E1 feito; falta E2 (planilha, P8)** →
+visuais (~~P5~~ **feito** / P6 selo) e UX (P7).
 
 ## Funcionais — frete e pedido
 
@@ -41,21 +42,29 @@ frete nem total no site. Fluxo a implementar:
 Resolve junto o P2. *(Seu pedido; fila de melhorias do front, resumo-sessao-2 §5/§6.)*
 *(A decidir na execução: nomes distintos para os dois botões; e se o nº do pedido é gerado na revisão ou no envio.)*
 
-### P4 — Múltiplos caldos de tipos diferentes não somam
-O site **alterna** o tipo de caldo em vez de **somar** — só dá para pedir vários do mesmo tipo.
-Precisa misturar tipos, com preço por caldo e total. Parte de P8. *(Reportado: Sessão 3.)*
+### P4 — Múltiplos caldos de tipos diferentes não somam ✅ RESOLVIDO no front (Sessão 5, E1)
+O site **alternava** o tipo de caldo em vez de **somar** — só dava para pedir vários do mesmo tipo.
+**Resolvido (E1):** carrinho de 6 itens (3 tipos × 2 tamanhos), preço por item, subtotal por soma,
+mensagem do WhatsApp em N linhas. *(Reportado: Sessão 3.)* A **gravação na planilha** dessa nova
+estrutura segue em P8 (E2). *(Resolvido no front; planilha pendente.)*
 
 ## Funcionais — backend/dados
 
-### P8 — Entrega E (planilha + preços)
-Religar a gravação de pedidos na planilha (`SHEETS_URL`/`doPost`, hoje desligado de propósito),
-preço por caldo, total, e múltiplos caldos (P4). Conferir cabeçalho de 16 colunas (A1:P1); decidir
-se `numero`/`complemento` entram no `appendRow`. *(Roadmap, Entrega E.)*
+### P8 — Entrega E (planilha + preços) — PARCIAL (E1 feito no front; E2 pendente)
+**E1 (Sessão 5, no front):** preço por item e múltiplos caldos (P4) já implementados — ver carrinho
+em `frontend/index.html` (`CARDAPIO`/`data.itens`).
+**E2 — pendente:** religar a gravação na planilha (`SHEETS_URL`/`doPost`, hoje desligado de propósito);
+mapear a nova estrutura `data.itens` (lista) para colunas; conferir/rever o cabeçalho (hoje 16 colunas
+A1:P1 com `caldo`/`qtde` únicos — precisa repensar p/ N itens); decidir se `numero`/`complemento`
+entram no `appendRow`. *(Roadmap, Entrega E.)*
 
 ## Visuais
 
-### P5 — Ícone errado no Caldo de Mandioca
-O ícone exibido é uma **batata**, não mandioca — trocar. *(Reportado: Sessão 3.)*
+### P5 — Ícone errado no Caldo de Mandioca ✅ RESOLVIDO (Sessão 5, E1)
+O ícone exibido era uma **batata** (🥔), não mandioca. **Resolvido:** criado
+`frontend/assets/emoji-mandioca.svg` (ícone desenhado) e referenciado no bloco do tipo via
+`<img src="assets/emoji-mandioca.svg" class="emoji" alt="Mandioca">`. Verde (🥬) e Frango (🍗)
+seguem com emoji de texto. *(Reportado: Sessão 3.)*
 
 ### P6 — Selo "ENTREGA GRÁTIS"
 "PARQUE IMPERIAL" está **estourando o círculo** do selo. Ajustar enquadramento/tamanho. *(Reportado: Sessão 3.)*

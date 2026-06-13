@@ -39,6 +39,9 @@ function pick(w, sel) {
 function submit(w) {
   q(w, '#form').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
 }
+// E1 (carrinho): clica o stepper [+]/[-] do item `id` n vezes (default 1).
+function addItem(w, id, n = 1) { const b = q(w, '.plus[data-id="' + id + '"]'); for (let i = 0; i < n; i++) b.click(); }
+function removeItem(w, id, n = 1) { const b = q(w, '.minus[data-id="' + id + '"]'); for (let i = 0; i < n; i++) b.click(); }
 const okData = () => Promise.resolve({ ok: true, json: async () => (
   { logradouro: 'Praça da Sé', bairro: 'Sé', localidade: 'São Paulo', uf: 'SP' }) });
 // fetch que distingue ViaCEP de Nominatim pela URL (p/ exercitar o fetchDistanciaKm real).
@@ -95,7 +98,7 @@ const tests = {
     q(w, '[name="telefone"]').value = '11999998888';
     q(w, '[name="endereco"]').value = 'Rua X';
     q(w, '[name="numero"]').value = '100';
-    pick(w, '[name="caldo"][value="Caldo Verde"]');
+    addItem(w, 'verde-g');
     pick(w, '[name="pagamento"][value="PIX"]');
     submit(w); await tick(); await tick();
     eq(q(w, '#done').style.display, 'block', 'pedido concluído mesmo sem ViaCEP');
@@ -112,7 +115,7 @@ const tests = {
     q(w, '[name="telefone"]').value = '11988887777';
     q(w, '[name="endereco"]').value = 'Rua Y';
     q(w, '[name="numero"]').value = '50';
-    pick(w, '[name="caldo"][value="Caldo de Mandioca"]');
+    addItem(w, 'mandioca-p');
     pick(w, '[name="pagamento"][value="Dinheiro"]');
     submit(w); await tick(); await tick();
     eq(q(w, '#done').style.display, 'block', 'pedido concluído apesar da falha de rede');
@@ -124,7 +127,7 @@ const tests = {
     q(w, '[name="telefone"]').value = '11977776666';
     q(w, '[name="endereco"]').value = 'Rua Z';
     q(w, '[name="numero"]').value = '1';
-    pick(w, '[name="caldo"][value="Caldo Verde"]');
+    addItem(w, 'verde-g');
     pick(w, '[name="pagamento"][value="PIX"]');
     const cep = q(w, '[name="cep"]');
     cep.value = '12345'; cep.dispatchEvent(new w.Event('input', { bubbles: true }));   // 5 dígitos
@@ -145,7 +148,7 @@ const tests = {
     q(w, '[name="telefone"]').value = '11999990000';
     q(w, '[name="endereco"]').value = 'Praça da Sé';
     q(w, '[name="numero"]').value = '200';
-    pick(w, '[name="caldo"][value="Caldo Verde"]');
+    addItem(w, 'verde-g');
     pick(w, '[name="pagamento"][value="PIX"]');
     submit(w); await tick(); await tick();
     const href = q(w, '#waLink').href;
@@ -155,9 +158,10 @@ const tests = {
     ok(msg.includes('*CEP:* 01001-000'), 'mensagem com CEP formatado');
     ok(msg.includes('*Cidade/UF:* São Paulo/SP'), 'mensagem com Cidade/UF');
     ok(msg.includes('*Bairro:* Sé'), 'mensagem com bairro do CEP');
-    ok(msg.includes('*Subtotal:* R$ 24,90'), 'mensagem com Subtotal');
+    ok(msg.includes('• 1x Caldo Verde (Grande)'), 'mensagem com a linha do item');
+    ok(msg.includes('*Subtotal:* R$ 28,00'), 'mensagem com Subtotal (Verde Grande)');
     ok(msg.includes('*Frete:* Grátis (2 km)'), 'mensagem com Frete (grátis, 2 km)');
-    ok(msg.includes('*Total:* R$ 24,90'), 'preço inalterado (R$ 24,90)');
+    ok(msg.includes('*Total:* R$ 28,00'), 'total com 1 item (R$ 28,00)');
     ok(/^#\d{3}$/.test(q(w, '#donePid').textContent), 'id do pedido no formato #NNN');
   },
 
@@ -165,12 +169,13 @@ const tests = {
     async function freteCase(km){
       const w = makeDom(okData);
       w.fetchDistanciaKm = () => Promise.resolve(km);
+      addItem(w, 'verde-g');                 // 1 × R$ 28,00 (subtotal base do total)
       await typeCep(w, '01001000'); await tick();
       return { frete: q(w, '#sumFrete').textContent, total: q(w, '#sumTotal').textContent };
     }
     let r;
-    r = await freteCase(2);   eq(r.frete, 'Grátis', '2,0 km = Grátis'); eq(r.total, 'R$ 24,90', '2 km: total = subtotal');
-    r = await freteCase(2.5); eq(r.frete, 'R$ 4,00', '2,5 km = R$ 4,00'); eq(r.total, 'R$ 28,90', '2,5 km: total = subtotal + 4');
+    r = await freteCase(2);   eq(r.frete, 'Grátis', '2,0 km = Grátis'); eq(r.total, 'R$ 28,00', '2 km: total = subtotal');
+    r = await freteCase(2.5); eq(r.frete, 'R$ 4,00', '2,5 km = R$ 4,00'); eq(r.total, 'R$ 32,00', '2,5 km: total = subtotal + 4');
     r = await freteCase(3);   eq(r.frete, 'R$ 4,00', '3,0 km = R$ 4,00 (borda)');
     r = await freteCase(3.5); eq(r.frete, 'R$ 6,00', '3,5 km = R$ 6,00');
     r = await freteCase(5);   eq(r.frete, 'R$ 6,00', '5,0 km = R$ 6,00 (borda)');
@@ -185,7 +190,7 @@ const tests = {
     eq(q(w, '#sumFrete').textContent, 'A confirmar pelo WhatsApp', 'frete a confirmar quando o geocode falha');
     q(w, '[name="nome"]').value = 'Ana'; q(w, '[name="telefone"]').value = '11999998888';
     q(w, '[name="endereco"]').value = 'Rua X'; q(w, '[name="numero"]').value = '10';
-    pick(w, '[name="caldo"][value="Caldo Verde"]'); pick(w, '[name="pagamento"][value="PIX"]');
+    addItem(w, 'verde-g'); pick(w, '[name="pagamento"][value="PIX"]');
     submit(w); await tick(); await tick();
     eq(q(w, '#done').style.display, 'block', 'pedido finaliza apesar da falha do geocode');
     ok(decodeURIComponent(q(w, '#waLink').href).includes('*Frete:* A confirmar pelo WhatsApp'), 'mensagem com frete a confirmar');
@@ -213,6 +218,32 @@ const tests = {
     const w = makeDom(routerFetch(via, [])); // Nominatim sem resultados
     await typeCep(w, '06253230'); await tick(); await tick(); await tick();
     eq(q(w, '#sumFrete').textContent, 'A confirmar pelo WhatsApp', 'geocode vazio => frete a confirmar');
+  },
+
+  async 'T13 — carrinho: soma de itens e msg em N linhas'() {
+    const w = makeDom(okData);
+    w.fetchDistanciaKm = () => Promise.resolve(2);   // 2 km = frete grátis
+    addItem(w, 'frango-p', 1);   // 1 × 12,00
+    addItem(w, 'verde-g', 2);    // 2 × 28,00 = 56,00
+    await typeCep(w, '01001000'); await tick();
+    eq(q(w, '#sumSub').textContent, 'R$ 68,00', 'subtotal = 12 + 56');
+    eq(q(w, '#sumTotal').textContent, 'R$ 68,00', 'total = subtotal (frete grátis 2 km)');
+    q(w, '[name="nome"]').value = 'Bia'; q(w, '[name="telefone"]').value = '11999990000';
+    q(w, '[name="endereco"]').value = 'Rua A'; q(w, '[name="numero"]').value = '1';
+    pick(w, '[name="pagamento"][value="PIX"]');
+    submit(w); await tick(); await tick();
+    const msg = decodeURIComponent(q(w, '#waLink').href);
+    ok(msg.includes('• 1x Caldo Cremoso de Frango (Pequeno)'), 'msg com linha do Frango Pequeno');
+    ok(msg.includes('• 2x Caldo Verde (Grande)'), 'msg com linha do Verde Grande');
+    ok(msg.includes('*Subtotal:* R$ 68,00'), 'msg com subtotal somado');
+  },
+
+  async 'T14 — stepper por item: piso 0 e teto 20'() {
+    const w = makeDom();
+    removeItem(w, 'verde-p', 1);                         // já em 0 -> continua 0
+    eq(q(w, '#q-verde-p').textContent, '0', 'minus em 0 mantém 0');
+    addItem(w, 'verde-p', 25);                           // tenta passar de 20
+    eq(q(w, '#q-verde-p').textContent, '20', 'plus respeita o teto 20');
   },
 };
 

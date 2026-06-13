@@ -4,12 +4,14 @@
 > Reúne: estado atual, decisões, roadmap, **processo de trabalho** e **regras**.
 > **Deve ser atualizado antes do fim de cada sessão.**
 
-- **Última atualização:** Sessão 4
-- **Sessão atual:** 4
-- **Status geral:** **Parte 1 no ar. Entregas C+D em `8348624`, no ar.** **Frete agora 100% no front**
-  (geocode **Nominatim** no navegador + distância em **linha reta/Haversine** até a base; ORS descartado).
-  **Backend limpo** (frete-ORS removido, **V8 no ar**) — só grava pedido (`doPost`) + healthcheck (`doGet`).
-  A **gravação na planilha (`doPost`, Entrega E) segue DESLIGADA** (`SHEETS_URL` vazia). Testes: front 48/48.
+- **Última atualização:** Sessão 5
+- **Sessão atual:** 5
+- **Status geral:** **Parte 1 no ar. Entregas C+D em `8348624`, no ar.** Frete 100% no front
+  (Nominatim + Haversine; ORS descartado). Backend limpo (**V8 no ar**) — só `doPost` + healthcheck `doGet`.
+  **Entrega E iniciada — E1 (carrinho) implementado no front** (working tree, ainda não commitado): 6 itens
+  (3 tipos × tamanhos P/G), preço por item, subtotal por soma, mensagem do WhatsApp em lista, **ícone SVG da
+  mandioca (P5)**. A **gravação na planilha (`doPost`, Entrega E2) segue DESLIGADA** (`SHEETS_URL` vazia).
+  Testes: front **56/56**.
 
 ---
 
@@ -132,17 +134,16 @@ resta só o `caldodafanny`.
 | **B** | Separar campos de endereço (rua / número / complemento-referência); ViaCEP preenche a rua; + scroll/foco ao 1º campo inválido | ✅ **Concluída e commitada** (`27c2caa`, 29/29) |
 | **C** | Segurança proporcional (anti-fórmula Sheets, validação/sanitização backend, limite de tamanho, honeypot) | ✅ **Commitada (`8348624`) e publicada** (origin/main; deploy automático no Netlify) — 43/43 testes puros |
 | **D** | Frete **por distância em km** (Sessão 4: ≤2 grátis / >2–3 R$4 / >3–5 R$6 / >5 consultar — **linha reta/Haversine**); **campo "Área de entrega" removido**; visual (card translúcido, logo, fundo→asset) | ✅ **Commitada (`8348624`) e publicada**. **Sessão 4 — frete 100% no front (D-front):** geocode **Nominatim** no navegador + Haversine; **ORS descartado**; backend limpo (V8). Front **48/48**. *(A planilha — `doPost`/`SHEETS_URL` — segue na Entrega E.)* |
-| **E** | Múltiplos caldos (tipos diferentes) + preço por caldo + total; religar a planilha (incl. colunas para **número** e **complemento**) | Não iniciada |
+| **E** | Múltiplos caldos (tipos diferentes) + preço por caldo + total; religar a planilha (incl. colunas para **número** e **complemento**) | 🔄 **Em andamento.** **E1 (Sessão 5, no front, working tree):** carrinho de 6 itens (3 tipos × P/G), preço por item, subtotal por soma, msg do WhatsApp em lista; campo `qty` global e `PRICE` removidos; ícone SVG da mandioca (P5). Front **56/56**. **E2 — pendente:** religar a planilha (`SHEETS_URL`/`doPost`) e mapear a nova estrutura `data.itens` (lista) para colunas. |
 
 ---
 
 ## 5. Pendências (o que falta / depende de decisão)
 
 **A lista única de pendências vive em [`docs/backlog.md`](backlog.md).** Itens abertos: **P2/P3**
-(frete invisível + tela "Revisar Pedido"), **P4/P8** (múltiplos caldos + Entrega E: religar a planilha
-`SHEETS_URL`/`doPost`, cabeçalho de 16 colunas A1:P1, decidir colunas `numero`/`complemento`), **P5/P6**
-(ícone batata no Caldo de Mandioca; selo "ENTREGA GRÁTIS" estourado), **P7** (`inputmode="numeric"` no
-campo Número). *(P1 — frete — ✅ resolvido na Sessão 4.)*
+(frete invisível + tela "Revisar Pedido"), **P8/E2** (religar a planilha `SHEETS_URL`/`doPost` e mapear
+`data.itens`), **P6** (selo "ENTREGA GRÁTIS" estourado), **P7** (`inputmode="numeric"` no campo Número).
+*(✅ resolvidos: P1 frete — Sessão 4; **P4 múltiplos caldos no front e P5 ícone da mandioca — Sessão 5, E1**.)*
 
 - **`ORS_KEY` (Script Properties):** **obsoleta** desde a Sessão 4 (o frete saiu do backend). Limpeza
   **opcional** — remover quando quiser; não afeta o código.
@@ -277,6 +278,25 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
 | `GUIA-INSTALACAO.md` | raiz | A dona (Fanny) | Manual de instalação/operação (leigo). | Conforme necessidade. |
 
 ## 10. Registro de sessões
+
+### Sessão 5
+- **Entrega E1 — núcleo do carrinho (frontend), implementada e testada (working tree, NÃO commitada até teste no navegador):**
+  pedido migrou de "1 caldo único + `qty` global" para **carrinho de 6 itens** (3 tipos × 2 tamanhos P/G),
+  cada um com id, preço e quantidade próprios (`CARDAPIO` + estado `qtd`). Subtotal = Σ(preço×qtd);
+  total = subtotal + frete (**lógica de frete/`freteState` intacta**). `validate()` agora exige `cartCount()≥1`.
+  `data.caldo`/`data.qtde` escalares → `data.itens` (lista); mensagem do WhatsApp passou de linha única para
+  **N linhas** (`• qtd x Tipo (Tamanho)`). Removidos `PRICE`/`qty` globais, stepper global e o CSS morto `.item`.
+- **Ícone SVG da mandioca (resolve P5):** criado `frontend/assets/emoji-mandioca.svg` e referenciado via
+  `<img class="emoji">` no bloco do tipo (mesmo padrão de caminho do `bg-cozinha.jpg`). Verde 🥬 / Frango 🍗 seguem texto.
+  *(Nota: o prompt da E1 chamou isso de "P6", mas pelo backlog o ícone é **P5**; P6 é o selo "ENTREGA GRÁTIS", que segue aberto.)*
+- **Testes (`harness.html` + `run-tests.mjs`) migrados:** `pick()` de caldo → helper `addItem()`; T7/T8 recalculados
+  para os preços novos; **+T13** (carrinho soma 12+56=68 e msg em 2 linhas) e **+T14** (stepper piso 0/teto 20). **56/56.**
+- **Frete na tela sem km (só renderização):** o `#freteInfo` deixou de exibir "(X km)" na tela (o cliente vê só
+  "Frete — R$ 4,00" / "Grátis"). O km **continua** na mensagem do WhatsApp (uso operacional) e `freteState.km`/o
+  cálculo da faixa **não** mudaram. Mudança isolada no `recalc()` (index + harness); nenhum teste afetado.
+- **`data.itens` × backend:** a gravação na planilha (E2) terá de mapear a nova lista — registrado em P8 (segue desligado, `SHEETS_URL=""`).
+- **Skill cross-projeto `concise-by-default`** criada em `~/.claude/skills/` (fora do repo; não versionada).
+- **Plano de P2/P3 (tela de revisão) elaborado** numa tarefa anterior desta sessão, mas **não implementado** (segue aberto no backlog).
 
 ### Sessão 4
 - Bugs reportados em produção (teste real): frete errado fora do Parque Imperial, frete invisível antes de finalizar, falta de tela de revisão, múltiplos caldos não somam, ícone batata no mandioca, selo "ENTREGA GRÁTIS" estourado. Criado `docs/backlog.md` (P1–P8) como lista única de pendências.
