@@ -5,7 +5,7 @@
 
 ## Prioridade sugerida
 ~~Revisar Pedido (P2/P3)~~ **feito (E2)** → ~~múltiplos caldos (P4)~~ **feito (E1)** →
-**religar planilha (P8)** → visuais (~~P5~~ **feito** / ~~P6 selo~~ **feito**) e UX (P7) → docs (**P10 README** logo após o P8; P9 dívida técnica).
+**religar planilha (P8)** → visuais (~~P5~~ **feito** / ~~P6 selo~~ **feito**) e UX (~~P7~~ **feito**) → docs (**P10 README** logo após o P8; P9 dívida técnica).
 
 ## Funcionais — frete e pedido
 
@@ -73,8 +73,11 @@ dentro do círculo (108px intocado). Encurtar o texto sozinho não bastou. *(Rep
 
 ## UX
 
-### P7 — Campo Número: teclado numérico no mobile
-Adicionar `inputmode="numeric"` (como no CEP) — **sem** máscara (aceitar "123A", "s/n"). *(contexto.md §5.)*
+### P7 — Campo Número: teclado numérico no mobile ✅ RESOLVIDO (Sessão 6)
+**Resolvido:** `inputmode="numeric"` adicionado ao `<input name="numero">` (`type="text"` mantido) — **sem**
+máscara, validação intocada ("123A"/"s/n" seguem válidos). **Não** replicado no `tests/harness.html`: o harness
+só espelha o que JS/testes cobrem, e `inputmode` não é JS-relevant nem testado (mesma lógica que já deixa
+`placeholder`/`required` de fora). *(contexto.md §5.)*
 
 ## Manutenção / dívida técnica
 

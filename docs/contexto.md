@@ -142,8 +142,8 @@ resta só o `caldodafanny`.
 ## 5. Pendências (o que falta / depende de decisão)
 
 **A lista única de pendências vive em [`docs/backlog.md`](backlog.md).** Itens abertos: **P8** (parte backend
-da Entrega E: religar a planilha `SHEETS_URL`/`doPost` e mapear `data.itens`), **P7** (`inputmode="numeric"` no campo Número).
-*(✅ resolvidos: P1 frete — Sessão 4; **P4 múltiplos caldos + P5 ícone — Sessão 5 (E1); P2/P3 frete visível + tela de revisão — Sessão 5 (E2); P6 selo "ENTREGA GRÁTIS" — Sessão 6**.)*
+da Entrega E: religar a planilha `SHEETS_URL`/`doPost` e mapear `data.itens`).
+*(✅ resolvidos: P1 frete — Sessão 4; **P4 múltiplos caldos + P5 ícone — Sessão 5 (E1); P2/P3 frete visível + tela de revisão — Sessão 5 (E2); P6 selo "ENTREGA GRÁTIS" + P7 teclado numérico — Sessão 6**.)*
 
 - **`ORS_KEY` (Script Properties):** **obsoleta** desde a Sessão 4 (o frete saiu do backend). Limpeza
   **opcional** — remover quando quiser; não afeta o código.
@@ -286,6 +286,10 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
   estilos intocados**, mudança escopada ao selo (rodapé "PARQUE IMPERIAL E REGIÃO" intacto). Testes **72/72** (selo
   não coberto). *(Antes desta entrega, salvou-se a skill cross-projeto `remote-git-check` em `~/.claude/skills/` —
   asset fora de qualquer repo, não versionado.)*
+- **P7 (teclado numérico no campo Número) — RESOLVIDO:** `inputmode="numeric"` no `<input name="numero">`
+  (`type="text"` mantido — **sem** máscara, validação intocada; "123A"/"s/n" seguem válidos). **Não** replicado
+  no `tests/harness.html`: o snapshot só espelha o que JS/testes cobrem, e `inputmode` não é JS-relevant nem
+  testado (mesma lógica que deixa `placeholder`/`required` de fora). Testes **72/72**.
 
 ### Sessão 5
 - **Entrega E1 — núcleo do carrinho (frontend), implementada e testada (working tree, NÃO commitada até teste no navegador):**
