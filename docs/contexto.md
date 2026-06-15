@@ -4,15 +4,15 @@
 > Reúne: estado atual, decisões, roadmap, **processo de trabalho** e **regras**.
 > **Deve ser atualizado antes do fim de cada sessão.**
 
-- **Última atualização:** Sessão 5
-- **Sessão atual:** 5
+- **Última atualização:** Sessão 6
+- **Sessão atual:** 6
 - **Status geral:** **Parte 1 no ar. Entregas C+D em `8348624`. E1 (carrinho) em `505065e`, no ar.**
   Frete 100% no front (Nominatim + Haversine; ORS descartado). Backend limpo (**V8 no ar**) — só `doPost` +
   healthcheck `doGet`. **Entrega E concluída no FRONT: E1 (carrinho — múltiplos caldos por tamanho, preço por
   item, ícone SVG da mandioca/P5) + E2 (tela de revisão — `#done` lista itens + Subtotal/Frete/Total, botões
   REVISAR PEDIDO / Confirmar Pedido, "Refazer pedido" sem apagar dados, aviso de frete a combinar; resolve P2/P3).**
   Falta só a **parte backend da Entrega E — religar a planilha (`doPost`/`SHEETS_URL`, hoje vazia) e mapear
-  `data.itens`** (P8). Testes: front **72/72**.
+  `data.itens`** (P8). Testes: front **72/72**. Selo "ENTREGA GRÁTIS" do cabeçalho corrigido (P6, Sessão 6).
 
 ---
 
@@ -142,9 +142,8 @@ resta só o `caldodafanny`.
 ## 5. Pendências (o que falta / depende de decisão)
 
 **A lista única de pendências vive em [`docs/backlog.md`](backlog.md).** Itens abertos: **P8** (parte backend
-da Entrega E: religar a planilha `SHEETS_URL`/`doPost` e mapear `data.itens`), **P6** (selo "ENTREGA GRÁTIS"
-estourado — fact-finding feito, correção adiada p/ próxima sessão), **P7** (`inputmode="numeric"` no campo Número).
-*(✅ resolvidos: P1 frete — Sessão 4; **P4 múltiplos caldos + P5 ícone — Sessão 5 (E1); P2/P3 frete visível + tela de revisão — Sessão 5 (E2)**.)*
+da Entrega E: religar a planilha `SHEETS_URL`/`doPost` e mapear `data.itens`), **P7** (`inputmode="numeric"` no campo Número).
+*(✅ resolvidos: P1 frete — Sessão 4; **P4 múltiplos caldos + P5 ícone — Sessão 5 (E1); P2/P3 frete visível + tela de revisão — Sessão 5 (E2); P6 selo "ENTREGA GRÁTIS" — Sessão 6**.)*
 
 - **`ORS_KEY` (Script Properties):** **obsoleta** desde a Sessão 4 (o frete saiu do backend). Limpeza
   **opcional** — remover quando quiser; não afeta o código.
@@ -279,6 +278,14 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
 | `GUIA-INSTALACAO.md` | raiz | A dona (Fanny) | Manual de instalação/operação (leigo). | Conforme necessidade. |
 
 ## 10. Registro de sessões
+
+### Sessão 6
+- **P6 (selo "ENTREGA GRÁTIS" estourado) — RESOLVIDO:** encurtar o texto sozinho não bastou; precisou de
+  ajuste de CSS. Texto do `<small>` do selo → `PQ.IMPERIAL` e `.freebadge small` ajustado (font-size 9.5px→8.5px,
+  letter-spacing .03em→0, `white-space:nowrap`) para caber inteiro numa linha dentro do círculo — **108px e demais
+  estilos intocados**, mudança escopada ao selo (rodapé "PARQUE IMPERIAL E REGIÃO" intacto). Testes **72/72** (selo
+  não coberto). *(Antes desta entrega, salvou-se a skill cross-projeto `remote-git-check` em `~/.claude/skills/` —
+  asset fora de qualquer repo, não versionado.)*
 
 ### Sessão 5
 - **Entrega E1 — núcleo do carrinho (frontend), implementada e testada (working tree, NÃO commitada até teste no navegador):**

@@ -5,7 +5,7 @@
 
 ## Prioridade sugerida
 ~~Revisar Pedido (P2/P3)~~ **feito (E2)** → ~~múltiplos caldos (P4)~~ **feito (E1)** →
-**religar planilha (P8)** → visuais (~~P5~~ **feito** / P6 selo) e UX (P7) → docs (**P10 README** logo após o P8; P9 dívida técnica).
+**religar planilha (P8)** → visuais (~~P5~~ **feito** / ~~P6 selo~~ **feito**) e UX (P7) → docs (**P10 README** logo após o P8; P9 dívida técnica).
 
 ## Funcionais — frete e pedido
 
@@ -66,8 +66,10 @@ O ícone exibido era uma **batata** (🥔), não mandioca. **Resolvido:** criado
 `<img src="assets/emoji-mandioca.svg" class="emoji" alt="Mandioca">`. Verde (🥬) e Frango (🍗)
 seguem com emoji de texto. *(Reportado: Sessão 3.)*
 
-### P6 — Selo "ENTREGA GRÁTIS"
-"PARQUE IMPERIAL" está **estourando o círculo** do selo. Ajustar enquadramento/tamanho. *(Reportado: Sessão 3.)*
+### P6 — Selo "ENTREGA GRÁTIS" ✅ RESOLVIDO (Sessão 6)
+**Resolvido:** texto encurtado para `PQ.IMPERIAL` **+ ajuste de CSS** escopado em `.freebadge small`
+(font-size 9.5px→8.5px, letter-spacing .03em→0, `white-space:nowrap`) para caber inteiro numa linha
+dentro do círculo (108px intocado). Encurtar o texto sozinho não bastou. *(Reportado: Sessão 3.)*
 
 ## UX
 
