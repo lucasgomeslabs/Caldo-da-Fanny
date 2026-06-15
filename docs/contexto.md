@@ -69,10 +69,10 @@ resta só o `caldodafanny`.
   **LINHA RETA (Haversine)** até a base — **sem ORS, sem chamada ao backend**. Régua: ≤2 grátis / >2–3 R$4 /
   >3–5 R$6 / >5 consultar. Travas: geocode vazio/erro/timeout ou >30 km → "a confirmar". (ORS descartado —
   ver §3.) `SHEETS_URL` segue vazia (gravação na planilha = Entrega E, desligada).
-- **Backend (gravação na planilha) — código pronto (Sessão 6):** `doPost` agora lê **`data.itens`** (lista),
-  grava **número** (junto do Endereço, `endereco + ", " + numero`) e **complemento** em coluna própria, com
-  cabeçalho de **17 colunas (A1:Q1)** e coluna "Itens" legível (`formatItens_`). `SHEETS_URL` segue vazia — só
-  falta a **ativação no Google** (P8).
+- **Backend (gravação na planilha) — LIGADA (Sessão 6):** `doPost` lê **`data.itens`** (lista), grava **número**
+  (junto do Endereço, `endereco + ", " + numero`) e **complemento** em coluna própria, com cabeçalho de
+  **17 colunas (A1:Q1)** e coluna "Itens" legível (`formatItens_`). **`SHEETS_URL` preenchida** com a URL `/exec`
+  do Web App; Apps Script na **Versão 9**. Falta só o **smoke test** da dona confirmar a 1ª linha gravada (P8).
 - **Sanitização:** fraca. Sem anti-fórmula no Sheets, sem honeypot (Entrega C).
 
 ---
@@ -156,8 +156,8 @@ resta só o `caldodafanny`.
 ## 5. Pendências (o que falta / depende de decisão)
 
 **A lista única de pendências vive em [`docs/backlog.md`](backlog.md).** Itens abertos: **P8** (Entrega E —
-backend já **reescrito** p/ `data.itens`; falta só a **ativação no Google**: alinhar o cabeçalho às 17 colunas,
-redeploy do Apps Script, colar a URL em `SHEETS_URL` e smoke test).
+backend reescrito + **ativação FEITA**: cabeçalho 17 col, redeploy Apps Script **V9** e `SHEETS_URL` preenchida;
+falta só o **smoke test** da dona confirmar a 1ª linha gravada na planilha).
 *(✅ resolvidos: P1 frete — Sessão 4; **P4 múltiplos caldos + P5 ícone — Sessão 5 (E1); P2/P3 frete visível + tela de revisão — Sessão 5 (E2); P6 selo "ENTREGA GRÁTIS" + P7 teclado numérico — Sessão 6**.)*
 
 - **`ORS_KEY` (Script Properties):** **obsoleta** desde a Sessão 4 (o frete saiu do backend). Limpeza
@@ -314,6 +314,10 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
   `itens`, casos B6 ampliado + B11) → **60/60**; front **72/72** inalterado. Front **não** tocado (`SHEETS_URL`
   segue ""). **Decisões D1–D5 na §3.** Ativação (alinhar cabeçalho da planilha real, redeploy, colar `SHEETS_URL`,
   smoke) é passo da dona no Google — fora do repo.
+- **P8 (ativação) — gravação LIGADA:** dona alinhou o cabeçalho e fez o redeploy do Apps Script (**Versão 9**);
+  preenchemos a const **`SHEETS_URL`** no front com a URL `.../exec` do Web App (única alteração — linha 398).
+  `tests/harness.html` **não** tocado (segue `SHEETS_URL=""` de propósito — testes não batem na rede); front
+  **72/72**. **Falta só o smoke test** da dona (1 pedido real → conferir a 1ª linha na planilha) p/ marcar P8 100%.
 
 ### Sessão 5
 - **Entrega E1 — núcleo do carrinho (frontend), implementada e testada (working tree, NÃO commitada até teste no navegador):**

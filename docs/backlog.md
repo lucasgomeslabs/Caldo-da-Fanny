@@ -50,7 +50,7 @@ estrutura segue em P8 (parte backend da Entrega E). *(Resolvido no front; planil
 
 ## Funcionais — backend/dados
 
-### P8 — Entrega E (planilha + preços) — PARCIAL (front E1+E2 + backend reescrito; ATIVAÇÃO no Google pendente)
+### P8 — Entrega E (planilha + preços) — QUASE (código + ativação feitos; falta só o smoke test da dona)
 **Front (Sessão 5):** múltiplos caldos/preço por item (E1) e tela de revisão (E2) prontos — ver
 `frontend/index.html` (`CARDAPIO`/`data.itens`).
 **Backend — CÓDIGO PRONTO (Sessão 6):** `backend/google-apps-script.js` reescrito para `data.itens` (lista):
@@ -58,9 +58,11 @@ estrutura segue em P8 (parte backend da Entrega E). *(Resolvido no front; planil
 coluna "Itens" (`{qtd}x {tipo} ({tamanho})`, separados por "; ", mesma redação do WhatsApp); cabeçalho de
 **17 colunas (A1:Q1)**; grava **número** (junto do Endereço), **complemento** e os **2 ids** (sequencial do
 backend em "Pedido"; `pedido_id` do front em "Ref. cliente"). `tests/backend-tests.mjs` migrado (60/60).
-**ATIVAÇÃO no Google — PENDENTE (passo da dona):** alinhar o cabeçalho da planilha real às 17 colunas (ou usar
-aba/planilha nova, pois o `appendRow` grava por posição), redeploy do Apps Script, colar a URL `.../exec` em
-`SHEETS_URL` (front) e smoke test de 1 pedido real. *(Roadmap, Entrega E.)*
+**ATIVAÇÃO — FEITA (Sessão 6):** redeploy do Apps Script (**Versão 9**) e **`SHEETS_URL` preenchida** com a URL
+`.../exec` no front (gravação ligada).
+**FALTA (passo da dona):** **smoke test** de 1 pedido real confirmando a 1ª linha na planilha (e que o cabeçalho
+real bate com as 17 colunas — `appendRow` grava por posição). **Só marcar P8 100% após o smoke passar.**
+*(Roadmap, Entrega E.)*
 
 ## Visuais
 
