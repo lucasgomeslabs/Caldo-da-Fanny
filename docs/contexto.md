@@ -69,6 +69,10 @@ resta só o `caldodafanny`.
   **LINHA RETA (Haversine)** até a base — **sem ORS, sem chamada ao backend**. Régua: ≤2 grátis / >2–3 R$4 /
   >3–5 R$6 / >5 consultar. Travas: geocode vazio/erro/timeout ou >30 km → "a confirmar". (ORS descartado —
   ver §3.) `SHEETS_URL` segue vazia (gravação na planilha = Entrega E, desligada).
+- **Backend (gravação na planilha) — código pronto (Sessão 6):** `doPost` agora lê **`data.itens`** (lista),
+  grava **número** (junto do Endereço, `endereco + ", " + numero`) e **complemento** em coluna própria, com
+  cabeçalho de **17 colunas (A1:Q1)** e coluna "Itens" legível (`formatItens_`). `SHEETS_URL` segue vazia — só
+  falta a **ativação no Google** (P8).
 - **Sanitização:** fraca. Sem anti-fórmula no Sheets, sem honeypot (Entrega C).
 
 ---
@@ -77,6 +81,16 @@ resta só o `caldodafanny`.
 
 - **Segurança proporcional:** por código, não por infra prematura.
 - **Planilha:** religada **somente na Entrega E**, já com a estrutura final do pedido.
+- **Desenho da planilha (Sessão 6 — fechado com a dona; backend reescrito p/ `data.itens`):**
+  - **D1 — 1 linha por pedido.** Coluna "Itens" = string legível `{qtd}x {tipo} ({tamanho})`, vários itens
+    separados por "; " (mesma redação por item da mensagem do WhatsApp).
+  - **D2 — Endereço** gravado = rua + número (`endereco + ", " + numero`); **Complemento** em coluna própria.
+  - **D3 — km/Subtotal/Frete/Total:** gravados como vêm do front (strings já formatadas; espelho — sem recálculo).
+  - **D4 — dois ids:** sequencial do backend (`getLastRow`) na coluna "Pedido"; `pedido_id` do front na coluna
+    "Ref. cliente".
+  - **D5 — sem colunas cidade/uf.**
+  - Cabeçalho final (17 col, A1:Q1): Pedido · Ref. cliente · Horário · Nome · Telefone · Endereço · Complemento ·
+    Bairro · CEP · Distância (km) · Itens · Subtotal · Frete · Total · Pagamento · Observações · Status.
 - **Múltiplos caldos (tipos diferentes):** confirmado — Entrega E.
 - **Endereço-base do frete:** **Rua Açucena, 175 — Parque Imperial, Barueri — CEP 06462520**
   (substitui a referência anterior, que tinha só o CEP de origem).
@@ -141,8 +155,9 @@ resta só o `caldodafanny`.
 
 ## 5. Pendências (o que falta / depende de decisão)
 
-**A lista única de pendências vive em [`docs/backlog.md`](backlog.md).** Itens abertos: **P8** (parte backend
-da Entrega E: religar a planilha `SHEETS_URL`/`doPost` e mapear `data.itens`).
+**A lista única de pendências vive em [`docs/backlog.md`](backlog.md).** Itens abertos: **P8** (Entrega E —
+backend já **reescrito** p/ `data.itens`; falta só a **ativação no Google**: alinhar o cabeçalho às 17 colunas,
+redeploy do Apps Script, colar a URL em `SHEETS_URL` e smoke test).
 *(✅ resolvidos: P1 frete — Sessão 4; **P4 múltiplos caldos + P5 ícone — Sessão 5 (E1); P2/P3 frete visível + tela de revisão — Sessão 5 (E2); P6 selo "ENTREGA GRÁTIS" + P7 teclado numérico — Sessão 6**.)*
 
 - **`ORS_KEY` (Script Properties):** **obsoleta** desde a Sessão 4 (o frete saiu do backend). Limpeza
@@ -290,6 +305,15 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
   (`type="text"` mantido — **sem** máscara, validação intocada; "123A"/"s/n" seguem válidos). **Não** replicado
   no `tests/harness.html`: o snapshot só espelha o que JS/testes cobrem, e `inputmode` não é JS-relevant nem
   testado (mesma lógica que deixa `placeholder`/`required` de fora). Testes **72/72**.
+- **P8 (backend → `data.itens`) — CÓDIGO PRONTO (ativação no Google pendente):** `backend/google-apps-script.js`
+  reescrito p/ a lista de itens. `validateOrder` deixou de exigir `caldo`/`qtde` e passou a exigir `itens`
+  (1..30; cada item com `qtd` 1–20 + `tipo`/`tamanho`); nova fn pura `formatItens_` (coluna "Itens", mesma
+  redação do WhatsApp, com `cleanText` em tipo/tamanho); cabeçalho **17 col (A1:Q1)**; grava número, complemento
+  e os 2 ids (sequencial + Ref. cliente). Segurança (`digits/antiFormula/cleanText/isBot/jsonOut`) e `doGet`
+  intactos. `tests/backend-tests.mjs` migrado (snapshot de `validateOrder`/`formatItens_`, `validOrder()` com
+  `itens`, casos B6 ampliado + B11) → **60/60**; front **72/72** inalterado. Front **não** tocado (`SHEETS_URL`
+  segue ""). **Decisões D1–D5 na §3.** Ativação (alinhar cabeçalho da planilha real, redeploy, colar `SHEETS_URL`,
+  smoke) é passo da dona no Google — fora do repo.
 
 ### Sessão 5
 - **Entrega E1 — núcleo do carrinho (frontend), implementada e testada (working tree, NÃO commitada até teste no navegador):**

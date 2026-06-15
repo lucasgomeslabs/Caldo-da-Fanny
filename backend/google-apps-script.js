@@ -26,7 +26,7 @@ const ABA = "Pedidos";
 // Limite de tamanho (caracteres) por campo gravado na planilha.
 const LIMITES = {
   horario: 40, nome: 80, telefone: 20, endereco: 120, numero: 20,
-  complemento: 80, bairro_cep: 60, cep: 9, km: 8, caldo: 60, qtde: 5,
+  complemento: 80, bairro_cep: 60, cep: 9, km: 8, pedido_id: 12,
   pagamento: 20, obs: 300, subtotal: 20, frete: 60, total: 20
 };
 
@@ -73,23 +73,43 @@ function isBot(d) {
 // Validação no backend (não confia no front). Retorna {ok:true} ou {ok:false, erro}.
 function validateOrder(d) {
   if (!d || typeof d !== "object") return { ok: false, erro: "payload invalido" };
-  const obrig = ["nome", "telefone", "endereco", "numero", "caldo", "pagamento"];
+  const obrig = ["nome", "telefone", "endereco", "numero", "pagamento"];
   for (let i = 0; i < obrig.length; i++) {
     if (String(d[obrig[i]] == null ? "" : d[obrig[i]]).trim() === "") {
       return { ok: false, erro: "campo obrigatorio vazio: " + obrig[i] };
     }
   }
   if (digits(d.telefone).length < 10) return { ok: false, erro: "telefone invalido" };
-  const q = parseInt(d.qtde, 10);
-  if (!(q >= 1 && q <= 20)) return { ok: false, erro: "quantidade invalida" };
+  // Itens: lista não-vazia (1..30). Cada item precisa de qtd inteira 1–20 e tipo/tamanho não-vazios.
+  if (!Array.isArray(d.itens) || d.itens.length < 1) return { ok: false, erro: "itens vazio" };
+  if (d.itens.length > 30) return { ok: false, erro: "itens demais" };
+  for (let i = 0; i < d.itens.length; i++) {
+    const it = d.itens[i] || {};
+    const q = parseInt(it.qtd, 10);
+    if (!(q >= 1 && q <= 20)) return { ok: false, erro: "quantidade invalida" };
+    if (String(it.tipo == null ? "" : it.tipo).trim() === "") return { ok: false, erro: "item sem tipo" };
+    if (String(it.tamanho == null ? "" : it.tamanho).trim() === "") return { ok: false, erro: "item sem tamanho" };
+  }
   if (PAGAMENTOS.indexOf(String(d.pagamento)) === -1) return { ok: false, erro: "pagamento invalido" };
-  // Proteção anti-payload gigante: nenhum campo pode exceder muito seu limite.
+  // Proteção anti-payload gigante: nenhum campo string pode exceder muito seu limite.
   for (const campo in LIMITES) {
     if (d[campo] != null && String(d[campo]).length > LIMITES[campo] * 4) {
       return { ok: false, erro: "campo muito grande: " + campo };
     }
   }
   return { ok: true };
+}
+
+// Formata a lista para a coluna "Itens": "{qtd}x {tipo} ({tamanho})" por item, vários
+// separados por "; ". MESMA redação por item da mensagem do WhatsApp (frontend/index.html).
+// tipo/tamanho passam por cleanText; qtd vira inteiro (o payload é controlável pelo cliente).
+function formatItens_(itens) {
+  if (!Array.isArray(itens)) return "";
+  return itens.map(function (it) {
+    const i = it || {};
+    const qtd = parseInt(i.qtd, 10) || 0;
+    return qtd + "x " + cleanText(i.tipo, 60) + " (" + cleanText(i.tamanho, 20) + ")";
+  }).join("; ");
 }
 
 /* =================================================================== */
@@ -130,35 +150,36 @@ function doPost(e) {
     }
     if (sheet.getLastRow() === 0) {
       sheet.appendRow([
-        "Pedido", "Horário", "Nome", "Telefone", "Endereço", "Bairro", "CEP",
-        "Distância(km)", "Caldo", "Qtde", "Pagamento", "Observações",
-        "Subtotal", "Frete", "Total", "Status"
+        "Pedido", "Ref. cliente", "Horário", "Nome", "Telefone", "Endereço", "Complemento",
+        "Bairro", "CEP", "Distância (km)", "Itens", "Subtotal", "Frete", "Total",
+        "Pagamento", "Observações", "Status"
       ]);
-      sheet.getRange("A1:P1").setFontWeight("bold").setBackground("#c1440e").setFontColor("#ffffff");
+      sheet.getRange("A1:Q1").setFontWeight("bold").setBackground("#c1440e").setFontColor("#ffffff");
       sheet.setFrozenRows(1);
     }
 
-    // Número oficial do pedido = quantidade de linhas já existentes
-    const numero = sheet.getLastRow(); // 1 = só cabeçalho => 1º pedido vira #001
-    const pid = "#" + String(numero).padStart(3, "0");
+    // Número oficial (sequencial do backend) = quantidade de linhas já existentes
+    const seq = sheet.getLastRow(); // 1 = só cabeçalho => 1º pedido vira #001
+    const pid = "#" + String(seq).padStart(3, "0");
 
     // 4) Grava já sanitizado (anti-fórmula + limite de tamanho em cada campo)
     sheet.appendRow([
-      pid,
+      pid,                                              // Pedido (sequencial do backend)
+      cleanText(d.pedido_id, LIMITES.pedido_id),        // Ref. cliente (id gerado no front)
       cleanText(d.horario || new Date().toLocaleString("pt-BR"), LIMITES.horario),
       cleanText(d.nome, LIMITES.nome),
       cleanText(d.telefone, LIMITES.telefone),
-      cleanText(d.endereco, LIMITES.endereco),
-      cleanText(d.bairro_cep, LIMITES.bairro_cep),   // "Bairro" = bairro do ViaCEP (campo manual removido)
+      cleanText(d.endereco, LIMITES.endereco) + ", " + cleanText(d.numero, LIMITES.numero),  // Endereço = rua + número
+      cleanText(d.complemento, LIMITES.complemento),    // Complemento
+      cleanText(d.bairro_cep, LIMITES.bairro_cep),      // "Bairro" = bairro do ViaCEP
       cleanText(d.cep, LIMITES.cep),
-      cleanText(d.km, LIMITES.km),                   // Distância (km) calculada no front (Nominatim+Haversine); pode vir vazia
-      cleanText(d.caldo, LIMITES.caldo),
-      cleanText(d.qtde, LIMITES.qtde),
-      cleanText(d.pagamento, LIMITES.pagamento),
-      cleanText(d.obs, LIMITES.obs),
+      cleanText(d.km, LIMITES.km),                      // Distância (km) calculada no front (Nominatim+Haversine); pode vir vazia
+      formatItens_(d.itens),                            // Itens (lista legível, mesma redação do WhatsApp)
       cleanText(d.subtotal, LIMITES.subtotal),
       cleanText(d.frete, LIMITES.frete),
       cleanText(d.total, LIMITES.total),
+      cleanText(d.pagamento, LIMITES.pagamento),
+      cleanText(d.obs, LIMITES.obs),
       "Recebido"
     ]);
 

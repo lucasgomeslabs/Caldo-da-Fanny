@@ -6,7 +6,7 @@
 /* ===================== SNAPSHOT ===================== */
 const LIMITES = {
   horario: 40, nome: 80, telefone: 20, endereco: 120, numero: 20,
-  complemento: 80, bairro_cep: 60, cep: 9, km: 8, caldo: 60, qtde: 5,
+  complemento: 80, bairro_cep: 60, cep: 9, km: 8, pedido_id: 12,
   pagamento: 20, obs: 300, subtotal: 20, frete: 60, total: 20
 };
 const PAGAMENTOS = ["PIX", "Dinheiro", "Cartão"];
@@ -34,15 +34,22 @@ function isBot(d) {
 }
 function validateOrder(d) {
   if (!d || typeof d !== "object") return { ok: false, erro: "payload invalido" };
-  const obrig = ["nome", "telefone", "endereco", "numero", "caldo", "pagamento"];
+  const obrig = ["nome", "telefone", "endereco", "numero", "pagamento"];
   for (let i = 0; i < obrig.length; i++) {
     if (String(d[obrig[i]] == null ? "" : d[obrig[i]]).trim() === "") {
       return { ok: false, erro: "campo obrigatorio vazio: " + obrig[i] };
     }
   }
   if (digits(d.telefone).length < 10) return { ok: false, erro: "telefone invalido" };
-  const q = parseInt(d.qtde, 10);
-  if (!(q >= 1 && q <= 20)) return { ok: false, erro: "quantidade invalida" };
+  if (!Array.isArray(d.itens) || d.itens.length < 1) return { ok: false, erro: "itens vazio" };
+  if (d.itens.length > 30) return { ok: false, erro: "itens demais" };
+  for (let i = 0; i < d.itens.length; i++) {
+    const it = d.itens[i] || {};
+    const q = parseInt(it.qtd, 10);
+    if (!(q >= 1 && q <= 20)) return { ok: false, erro: "quantidade invalida" };
+    if (String(it.tipo == null ? "" : it.tipo).trim() === "") return { ok: false, erro: "item sem tipo" };
+    if (String(it.tamanho == null ? "" : it.tamanho).trim() === "") return { ok: false, erro: "item sem tamanho" };
+  }
   if (PAGAMENTOS.indexOf(String(d.pagamento)) === -1) return { ok: false, erro: "pagamento invalido" };
   for (const campo in LIMITES) {
     if (d[campo] != null && String(d[campo]).length > LIMITES[campo] * 4) {
@@ -50,6 +57,14 @@ function validateOrder(d) {
     }
   }
   return { ok: true };
+}
+function formatItens_(itens) {
+  if (!Array.isArray(itens)) return "";
+  return itens.map(function (it) {
+    const i = it || {};
+    const qtd = parseInt(i.qtd, 10) || 0;
+    return qtd + "x " + cleanText(i.tipo, 60) + " (" + cleanText(i.tamanho, 20) + ")";
+  }).join("; ");
 }
 function montarEndereco_(via) {
   const partes = [];
@@ -87,7 +102,8 @@ function validOrder(extra) {
   return Object.assign({
     horario: '09/06/2026 12:00', nome: 'Maria', telefone: '11999998888',
     endereco: 'Rua X', numero: '100', complemento: '', cep: '01001000',
-    bairro: 'Parque Imperial', caldo: 'Caldo Verde', qtde: 2, pagamento: 'PIX',
+    bairro_cep: 'Parque Imperial', pagamento: 'PIX',
+    itens: [{ id: 'verde-p', tipo: 'Caldo Verde', tamanho: 'Pequeno', volume: '250ml', preco: 15, qtd: 2 }],
     obs: '', total: 'R$ 49,80', website: ''
   }, extra || {});
 }
@@ -124,11 +140,18 @@ const tests = {
     eq(validateOrder(validOrder({ numero: '   ' })).ok, false, 'numero so espacos reprova');
     eq(validateOrder(validOrder({ endereco: '' })).ok, false, 'endereco vazio reprova');
   },
-  'B6 — telefone e quantidade'() {
+  'B6 — telefone e itens (lista + quantidade por item)'() {
     eq(validateOrder(validOrder({ telefone: '1199' })).ok, false, 'telefone curto reprova');
-    eq(validateOrder(validOrder({ qtde: 0 })).ok, false, 'qtde 0 reprova');
-    eq(validateOrder(validOrder({ qtde: 21 })).ok, false, 'qtde 21 reprova');
-    eq(validateOrder(validOrder({ qtde: 'abc' })).ok, false, 'qtde nao-numero reprova');
+    eq(validateOrder(validOrder({ itens: undefined })).ok, false, 'itens ausente reprova');
+    eq(validateOrder(validOrder({ itens: [] })).ok, false, 'itens vazio reprova');
+    eq(validateOrder(validOrder({ itens: [{ tipo: 'Caldo Verde', tamanho: 'P', qtd: 0 }] })).ok, false, 'qtd 0 reprova');
+    eq(validateOrder(validOrder({ itens: [{ tipo: 'Caldo Verde', tamanho: 'P', qtd: 21 }] })).ok, false, 'qtd 21 reprova');
+    eq(validateOrder(validOrder({ itens: [{ tipo: 'Caldo Verde', tamanho: 'P', qtd: 'abc' }] })).ok, false, 'qtd nao-numero reprova');
+    eq(validateOrder(validOrder({ itens: [{ tipo: '', tamanho: 'P', qtd: 1 }] })).ok, false, 'item sem tipo reprova');
+    eq(validateOrder(validOrder({ itens: [{ tipo: 'Caldo Verde', tamanho: '   ', qtd: 1 }] })).ok, false, 'item sem tamanho reprova');
+    const muitos = []; for (let i = 0; i < 31; i++) muitos.push({ tipo: 'X', tamanho: 'P', qtd: 1 });
+    eq(validateOrder(validOrder({ itens: muitos })).ok, false, '>30 itens reprova');
+    eq(validateOrder(validOrder({ itens: [{ tipo: 'Caldo Verde', tamanho: 'Grande', qtd: 20 }] })).ok, true, 'qtd 20 (limite) com tipo/tamanho ok passa');
   },
   'B7 — enum estrito de pagamento (PIX/Dinheiro/Cartao)'() {
     eq(validateOrder(validOrder({ pagamento: 'PIX' })).ok, true, 'PIX valido');
@@ -166,6 +189,17 @@ const tests = {
       'com algum campo, nunca retorna vazio nem so "Brasil"');
     eq(montarEndereco_({ logradouro: '  Av. Teste  ', localidade: 'X', uf: 'sp' }),
       'Av. Teste, X, sp, Brasil', 'faz trim dos campos');
+  },
+  'B11 — formatItens_: redacao "{qtd}x {tipo} ({tamanho})" juntada por "; " + sanitizacao'() {
+    eq(formatItens_([{ tipo: 'Caldo Cremoso de Frango', tamanho: 'Grande', qtd: 2 },
+                     { tipo: 'Caldo Verde', tamanho: 'Pequeno', qtd: 1 }]),
+      '2x Caldo Cremoso de Frango (Grande); 1x Caldo Verde (Pequeno)', 'dois itens juntos por "; "');
+    eq(formatItens_([{ tipo: 'Caldo Verde', tamanho: 'Pequeno', qtd: 3 }]),
+      '3x Caldo Verde (Pequeno)', 'um item');
+    eq(formatItens_([{ tipo: '=SUM(A1)', tamanho: 'Grande', qtd: 1 }]),
+      "1x '=SUM(A1) (Grande)", 'tipo iniciando com = e sanitizado (apostrofo do anti-formula)');
+    eq(formatItens_([]), '', 'lista vazia -> string vazia');
+    eq(formatItens_('nao-array'), '', 'entrada nao-array -> string vazia');
   }
 };
 

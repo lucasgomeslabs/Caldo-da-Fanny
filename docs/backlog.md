@@ -50,13 +50,17 @@ estrutura segue em P8 (parte backend da Entrega E). *(Resolvido no front; planil
 
 ## Funcionais — backend/dados
 
-### P8 — Entrega E (planilha + preços) — PARCIAL (front feito: E1+E2; planilha pendente)
+### P8 — Entrega E (planilha + preços) — PARCIAL (front E1+E2 + backend reescrito; ATIVAÇÃO no Google pendente)
 **Front (Sessão 5):** múltiplos caldos/preço por item (E1) e tela de revisão (E2) prontos — ver
 `frontend/index.html` (`CARDAPIO`/`data.itens`).
-**Planilha (parte backend, pendente):** religar a gravação (`SHEETS_URL`/`doPost`, hoje desligado de propósito);
-mapear a nova estrutura `data.itens` (lista) para colunas; conferir/rever o cabeçalho (hoje 16 colunas
-A1:P1 com `caldo`/`qtde` únicos — precisa repensar p/ N itens); decidir se `numero`/`complemento`
-entram no `appendRow`. *(Roadmap, Entrega E.)*
+**Backend — CÓDIGO PRONTO (Sessão 6):** `backend/google-apps-script.js` reescrito para `data.itens` (lista):
+`validateOrder` exige `itens` (1..30; cada item com `qtd` 1–20 + `tipo`/`tamanho`); nova `formatItens_` monta a
+coluna "Itens" (`{qtd}x {tipo} ({tamanho})`, separados por "; ", mesma redação do WhatsApp); cabeçalho de
+**17 colunas (A1:Q1)**; grava **número** (junto do Endereço), **complemento** e os **2 ids** (sequencial do
+backend em "Pedido"; `pedido_id` do front em "Ref. cliente"). `tests/backend-tests.mjs` migrado (60/60).
+**ATIVAÇÃO no Google — PENDENTE (passo da dona):** alinhar o cabeçalho da planilha real às 17 colunas (ou usar
+aba/planilha nova, pois o `appendRow` grava por posição), redeploy do Apps Script, colar a URL `.../exec` em
+`SHEETS_URL` (front) e smoke test de 1 pedido real. *(Roadmap, Entrega E.)*
 
 ## Visuais
 
