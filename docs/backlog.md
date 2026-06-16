@@ -5,7 +5,8 @@
 
 ## Prioridade sugerida
 ~~Revisar Pedido (P2/P3)~~ **feito (E2)** → ~~múltiplos caldos (P4)~~ **feito (E1)** →
-~~religar planilha (P8)~~ **feito** → visuais (~~P5~~ **feito** / ~~P6 selo~~ **feito**) e UX (~~P7~~ **feito**) → docs (~~P10 README~~ **feito**; **P9 dívida técnica** = único aberto).
+~~religar planilha (P8)~~ **feito** → visuais (~~P5~~ **feito** / ~~P6 selo~~ **feito**) e UX (~~P7~~ **feito**) → docs (~~P10 README~~ **feito** / ~~P9 dívida técnica~~ **feito**).
+**Backlog 100% fechado.**
 
 ## Funcionais — frete e pedido
 
@@ -87,14 +88,15 @@ só espelha o que JS/testes cobrem, e `inputmode` não é JS-relevant nem testad
 
 ## Manutenção / dívida técnica
 
-### P9 — Resíduos de documentação e testes defasados
-Limpeza de inconsistências pré-Sessão 4 (não crítica):
-- `contexto.md` §1 (stack: "backend desligado", "7 cenários / 28 verificações") e §6 "Onde paramos"
-  (narra o frete-ORS e cita a régua antiga ≤3/≤4/≤5/≤6) estão desatualizados.
-- `contexto.md` §2: "Sanitização: fraca / sem anti-fórmula / sem honeypot" — a Entrega C já implementou isso.
-- `tests/backend-tests.mjs`: snapshot ainda inclui `montarEndereco_` (removido do backend na Sessão 4);
-  passa nos testes por testar a própria cópia, mas está dessincronizado do backend real.
-*(Registrado na Sessão 4; consertar numa próxima.)*
+### P9 — Resíduos de documentação e testes defasados ✅ RESOLVIDO (Sessão 7)
+**Resolvido:**
+- `tests/backend-tests.mjs`: removidos os snapshots mortos `montarEndereco_` (saiu do backend na Sessão 4) e
+  `calcFrete` (não está no backend; cópia trazia a régua antiga descartada ≤3/3–4/4–5/5–6/>6). Apagados os testes
+  B9/B10; cabeçalho e título do runner reescritos. **60/60 → 43/43** (front 72/72 intacto; `calcFrete` vivo segue
+  coberto pela suíte do front).
+- `contexto.md`: §1 corrigido (713 linhas, fundo em asset, backend ligado, testes 72/72 + 43/43); §2 "sanitização
+  fraca" → Entrega C implementada; §6 reintitulado + nota de que o frete-ORS dos marcos C/D foi superado (Sessão 4).
+*(Registrado na Sessão 4; resolvido na Sessão 7.)*
 
 ### P10 — Atualizar README.md (pós-Entrega E) ✅ RESOLVIDO (Sessão 6)
 **Resolvido:** `README.md` reescrito sobre o estado real — link do site ao vivo, screenshot

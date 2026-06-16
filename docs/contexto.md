@@ -4,15 +4,16 @@
 > Reúne: estado atual, decisões, roadmap, **processo de trabalho** e **regras**.
 > **Deve ser atualizado antes do fim de cada sessão.**
 
-- **Última atualização:** Sessão 6
-- **Sessão atual:** 6
+- **Última atualização:** Sessão 7
+- **Sessão atual:** 7
 - **Status geral:** **Parte 1 no ar. Entregas C+D em `8348624`. E1 (carrinho) em `505065e`, no ar.**
   Frete 100% no front (Nominatim + Haversine; ORS descartado). Backend **V9 no ar** — `doPost` grava `data.itens` na planilha (17 col, A1:Q1) + healthcheck `doGet`. **Entrega E concluída no FRONT: E1 (carrinho — múltiplos caldos por tamanho, preço por
   item, ícone SVG da mandioca/P5) + E2 (tela de revisão — `#done` lista itens + Subtotal/Frete/Total, botões
   REVISAR PEDIDO / Confirmar Pedido, "Refazer pedido" sem apagar dados, aviso de frete a combinar; resolve P2/P3).**
   **Entrega E 100% — P8 fechado:** backend V9 + `SHEETS_URL` ligada; planilha de 17 col gravando (smoke OK).
-  ⇒ **roadmap A–E COMPLETO.** Resta só docs: **P10** (README) e **P9** (dívida de testes). Testes: front
-  **72/72**, backend **60/60**. Sessão 6 também fechou P6 (selo "ENTREGA GRÁTIS") e P7 (teclado numérico).
+  ⇒ **roadmap A–E COMPLETO** e, com **P9 fechado na Sessão 7** (snapshots mortos `montarEndereco_`/`calcFrete`
+  removidos de `backend-tests.mjs` + contexto sincronizado), o **backlog está 100% resolvido**. Testes: front
+  **72/72**, backend **43/43**.
 
 ---
 
@@ -23,12 +24,12 @@ no site e finaliza pelo WhatsApp (mensagem pré-preenchida). Há um backend opci
 Google Apps Script que grava pedidos numa planilha — hoje **desligado**.
 
 **Stack real (confirmada por análise):**
-- \`frontend/index.html\` — arquivo único: HTML + CSS (inline) + JS (inline). ~531 linhas.
-  Imagem de fundo embutida em base64. Mobile-first.
+- \`frontend/index.html\` — arquivo único: HTML + CSS (inline) + JS (inline). ~713 linhas.
+  Imagem de fundo em asset (\`assets/bg-cozinha.jpg\`, extraída do base64 na Sessão 4). Mobile-first.
 - \`backend/google-apps-script.js\` — Web App que grava pedidos na planilha (\`doPost\`).
-  **Desligado** hoje: a constante \`SHEETS_URL\` no front está vazia.
-- \`tests/\` — suíte com \`run-tests.mjs\` (Node + jsdom) sobre \`harness.html\`, que é um
-  **snapshot manual** do inline do index.html. 7 cenários / 28 verificações.
+  **LIGADO** (Sessão 6): \`SHEETS_URL\` preenchida no front; grava 17 colunas (A1:Q1).
+- \`tests/\` — duas suítes (Node): \`run-tests.mjs\` (jsdom) sobre \`harness.html\` (snapshot manual do
+  inline do index) → **72/72**; \`backend-tests.mjs\` (lógica pura do backend) → **43/43**.
 - \`Banner/\`, \`GUIA-INSTALACAO.md\`, \`.gitignore\`, \`files.zip\` (ignorado no git).
 
 **Repositório:** GitHub \`origin\` configurado
@@ -73,7 +74,8 @@ resta só o `caldodafanny`.
   (junto do Endereço, `endereco + ", " + numero`) e **complemento** em coluna própria, com cabeçalho de
   **17 colunas (A1:Q1)** e coluna "Itens" legível (`formatItens_`). **`SHEETS_URL` preenchida** com a URL `/exec`
   do Web App; Apps Script na **Versão 9**. Falta só o **smoke test** da dona confirmar a 1ª linha gravada (P8).
-- **Sanitização:** fraca. Sem anti-fórmula no Sheets, sem honeypot (Entrega C).
+- **Sanitização:** implementada (Entrega C) — anti-fórmula no Sheets (apóstrofo), `cleanText`/limites
+  por campo, honeypot só no backend, enum estrito de `pagamento`. Cobertura em `tests/backend-tests.mjs`.
 
 ---
 
@@ -155,17 +157,21 @@ resta só o `caldodafanny`.
 
 ## 5. Pendências (o que falta / depende de decisão)
 
-**A lista única de pendências vive em [`docs/backlog.md`](backlog.md).** Item aberto: **P9** (dívida técnica —
-`tests/backend-tests.mjs` ainda traz snapshots de `calcFrete`/`montarEndereco_`, que saíram do backend na
-Sessão 4; limpar — não crítico).
-*(✅ resolvidos: P1 frete — Sessão 4; **P4 múltiplos caldos + P5 ícone — Sessão 5 (E1); P2/P3 frete visível + tela de revisão — Sessão 5 (E2); P6 selo "ENTREGA GRÁTIS" + P7 teclado numérico + P8 planilha (backend V9 + 17 col, smoke OK) + P10 README — Sessão 6**.)*
+**A lista única de pendências vive em [`docs/backlog.md`](backlog.md).** **Nenhum item aberto** — o backlog
+está 100% fechado. **P9** (dívida técnica: snapshots mortos `calcFrete`/`montarEndereco_` em
+`backend-tests.mjs`) foi resolvido na **Sessão 7**.
+*(✅ resolvidos: P1 frete — Sessão 4; **P4 múltiplos caldos + P5 ícone — Sessão 5 (E1); P2/P3 frete visível + tela de revisão — Sessão 5 (E2); P6 selo "ENTREGA GRÁTIS" + P7 teclado numérico + P8 planilha (backend V9 + 17 col, smoke OK) + P10 README — Sessão 6; P9 dívida de testes — Sessão 7**.)*
 
 - **`ORS_KEY` (Script Properties):** **obsoleta** desde a Sessão 4 (o frete saiu do backend). Limpeza
   **opcional** — remover quando quiser; não afeta o código.
 
 ---
 
-## 6. Onde paramos (Parte 1 concluída e NO AR)
+## 6. Onde paramos (roadmap A–E completo, no ar)
+
+> **Nota (Sessão 7):** os marcos abaixo são um **log cronológico**; o estado atual é o do topo deste arquivo
+> (status geral). Em especial, o frete descrito nos marcos de C/D usava **ORS** — **superado na Sessão 4**
+> (D-front: Nominatim + Haversine no navegador; régua atual ≤2 grátis / >2–3 R$4 / >3–5 R$6 / >5 consultar).
 
 - Projeto subiu para o GitHub (commit inicial \`d8c5516\`).
 - Diagnóstico completo (somente leitura) feito pelo Code.
@@ -297,6 +303,17 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
 | `GUIA-INSTALACAO.md` | raiz | A dona (Fanny) | Manual de instalação/operação (leigo). | Conforme necessidade. |
 
 ## 10. Registro de sessões
+
+### Sessão 7
+- **P9 (dívida técnica) — RESOLVIDO ⇒ backlog 100% fechado.** Duas frentes, sem tocar código de produção:
+  - **`tests/backend-tests.mjs`:** removidos os snapshots mortos `montarEndereco_` (saiu do backend na Sessão 4)
+    e `calcFrete` (não está no backend; a cópia local ainda trazia a régua **antiga descartada** ≤3/3–4/4–5/5–6/>6,
+    divergente da régua viva do front). Apagados os testes **B9** (calcFrete) e **B10** (montarEndereco_); cabeçalho
+    e título do runner reescritos para "lógica pura do backend". O `calcFrete` vivo (≤2/>2–3/>3–5/>5) segue coberto
+    pela suíte do front. **60/60 → 43/43** (volta ao número da Entrega C); front **72/72** inalterado.
+  - **`docs/contexto.md`:** §1 corrigido (index ~531→**713 linhas**; fundo **não** é base64, é `assets/bg-cozinha.jpg`;
+    backend **ligado**, não "desligado"; testes 28→72/72 + 43/43); §2 "sanitização fraca" → Entrega C implementada;
+    §6 reintitulado e com nota de que o frete-ORS dos marcos C/D foi **superado** (D-front, Sessão 4).
 
 ### Sessão 6
 - **P6 (selo "ENTREGA GRÁTIS" estourado) — RESOLVIDO:** encurtar o texto sozinho não bastou; precisou de

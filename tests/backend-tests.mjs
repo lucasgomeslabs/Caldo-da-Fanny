@@ -1,6 +1,7 @@
-/* Testes de lógica pura (Entregas C+D).
-   SNAPSHOT das funções puras: segurança (de backend/google-apps-script.js) e
-   calcFrete (de frontend/index.html). Cópia fiel — se mudar nos fontes, atualize aqui.
+/* Testes de lógica pura do BACKEND (segurança + pedido).
+   SNAPSHOT das funções puras de backend/google-apps-script.js (anti-fórmula, sanitização,
+   honeypot, validateOrder, formatItens_). Cópia fiel — se mudar no backend, atualize aqui.
+   (O cálculo de frete vive no front e é testado em tests/run-tests.mjs.)
    Não depende do Google/planilha. Como rodar:  node tests/backend-tests.mjs */
 
 /* ===================== SNAPSHOT ===================== */
@@ -65,27 +66,6 @@ function formatItens_(itens) {
     const qtd = parseInt(i.qtd, 10) || 0;
     return qtd + "x " + cleanText(i.tipo, 60) + " (" + cleanText(i.tamanho, 20) + ")";
   }).join("; ");
-}
-function montarEndereco_(via) {
-  const partes = [];
-  const campos = ["logradouro", "bairro", "localidade", "uf"];
-  for (let i = 0; i < campos.length; i++) {
-    const val = String((via && via[campos[i]] != null) ? via[campos[i]] : "").trim();
-    if (val) partes.push(val);
-  }
-  partes.push("Brasil");
-  return partes.join(", ");
-}
-/* calcFrete(km): tabela em DEGRAUS por distância (km) — IDÊNTICA ao frontend/index.html.
-   Limites: km<=3 grátis; (3,4] R$4; (4,5] R$6; (5,6] R$8; km>6 "consultar".
-   Ex.: 3,0=grátis · 4,0=R$4 (faixa 3–4) · 5,5=R$8 · 7=consultar. */
-function calcFrete(km) {
-  if (typeof km !== "number" || !(km >= 0)) return { valor: null, status: "indef" };
-  if (km <= 3) return { valor: 0, status: "gratis" };
-  if (km <= 4) return { valor: 4, status: "pago" };
-  if (km <= 5) return { valor: 6, status: "pago" };
-  if (km <= 6) return { valor: 8, status: "pago" };
-  return { valor: null, status: "consultar" };
 }
 /* ===================== fim do snapshot ===================== */
 
@@ -164,32 +144,6 @@ const tests = {
     eq(validateOrder(validOrder({ nome: 'a'.repeat(80 * 4 + 1) })).ok, false, 'nome gigante reprova');
     eq(validateOrder(validOrder({ obs: 'a'.repeat(300) })).ok, true, 'obs no limite passa (truncada na gravacao)');
   },
-  'B9 — calcFrete: tabela em degraus por distancia'() {
-    eq(calcFrete(2).status, 'gratis', '2 km = gratis');
-    eq(calcFrete(3).status, 'gratis', '3,0 km = gratis (limite inferior)');
-    eq(calcFrete(3.5).valor, 4, '3,5 km = R$ 4');
-    eq(calcFrete(4).valor, 4, '4,0 km cai na faixa 3-4 (R$ 4)');
-    eq(calcFrete(4.5).valor, 6, '4,5 km = R$ 6');
-    eq(calcFrete(5).valor, 6, '5,0 km = R$ 6');
-    eq(calcFrete(5.5).valor, 8, '5,5 km = R$ 8');
-    eq(calcFrete(6).valor, 8, '6,0 km = R$ 8');
-    eq(calcFrete(7).status, 'consultar', '7 km (>6) = consultar');
-    eq(calcFrete(0).status, 'gratis', '0 km = gratis');
-    eq(calcFrete('x').status, 'indef', 'nao-numero = indef (fallback)');
-  },
-  'B10 — montarEndereco_: texto do ViaCEP (campos nao-vazios + Brasil)'() {
-    eq(montarEndereco_({ logradouro: 'Rua das Flores', bairro: 'Parque Imperial', localidade: 'Barueri', uf: 'SP' }),
-      'Rua das Flores, Parque Imperial, Barueri, SP, Brasil', 'todos os campos presentes');
-    eq(montarEndereco_({ logradouro: '', bairro: '', localidade: 'Barueri', uf: 'SP' }),
-      'Barueri, SP, Brasil', 'CEP generico (logradouro/bairro vazios) -> cidade, UF, Brasil');
-    eq(montarEndereco_({ logradouro: '', bairro: '', localidade: '', uf: 'SP' }),
-      'SP, Brasil', 'so uf -> "SP, Brasil" (nunca vazio nem so "Brasil" sem cidade)');
-    eq(montarEndereco_({}), 'Brasil', 'tudo vazio -> "Brasil" (enderecoDoCep_ rejeita esse caso)');
-    ok(montarEndereco_({ uf: 'SP' }) !== '' && montarEndereco_({ uf: 'SP' }) !== 'Brasil',
-      'com algum campo, nunca retorna vazio nem so "Brasil"');
-    eq(montarEndereco_({ logradouro: '  Av. Teste  ', localidade: 'X', uf: 'sp' }),
-      'Av. Teste, X, sp, Brasil', 'faz trim dos campos');
-  },
   'B11 — formatItens_: redacao "{qtd}x {tipo} ({tamanho})" juntada por "; " + sanitizacao'() {
     eq(formatItens_([{ tipo: 'Caldo Cremoso de Frango', tamanho: 'Grande', qtd: 2 },
                      { tipo: 'Caldo Verde', tamanho: 'Pequeno', qtd: 1 }]),
@@ -204,7 +158,7 @@ const tests = {
 };
 
 (async () => {
-  console.log('== Logica pura (Entregas C+D) — seguranca + calcFrete ==');
+  console.log('== Logica pura do backend — seguranca + pedido ==');
   for (const [name, fn] of Object.entries(tests)) {
     console.log('');
     console.log(name);
