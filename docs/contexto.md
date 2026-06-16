@@ -277,6 +277,7 @@ Ideias deliberadamente **fora** do roadmap atual (C, D, E). Registradas para rea
   - Provável **gatilho para evoluir o backend** além da planilha (ver §8, escala futura).
   - **Decisão:** NÃO entra no roadmap atual (C, D, E). Reavaliar como projeto próprio quando o
     volume justificar.
+- Ideias pós-MVP (funcionalidades de produtividade, dashboard de vendas, WhatsApp Business, animações de fundo) estão em `docs/melhorias-futuras.md`.
 
 ---
 
