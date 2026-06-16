@@ -8,7 +8,7 @@ preenchida. Projeto desenvolvido de forma incremental, com testes e documentaç�
 site — choosing multiple broths in different sizes — and finalize it via WhatsApp with a
 pre-filled message. Built incrementally, with tests and process documentation.*
 
-**🔗 Demo ao vivo / Live demo:** https://caldodafanny.netlify.app
+**🔗 Demo ao vivo / Live demo:** https://caldo-da-fanny.gomless.workers.dev
 
 ![Caldo da Fanny — site de pedidos de caldos caseiros](docs/screenshot.jpg)
 

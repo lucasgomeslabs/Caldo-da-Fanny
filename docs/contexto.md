@@ -36,13 +36,16 @@ Google Apps Script que grava pedidos numa planilha — hoje **desligado**.
 (\`https://github.com/lucasgomeslabs/Caldo-da-Fanny.git\`), branch \`main\`.
 Existe uma branch local \`backup/pre-hardening\` (não publicada, ponto de restauração).
 
-**Publicação:** site estático no **Netlify**, **já conectado** ao **GitHub com deploy
-automático ativo** — no ar em **https://caldodafanny.netlify.app**. Cada push em `main`
-republica o site sozinho. A **publish directory é `frontend`** (onde está o `index.html`),
-configurada no `netlify.toml` na raiz, sem etapa de build (`command = ""`). Acesso do
-Netlify ao GitHub restrito **apenas ao repositório `Caldo-da-Fanny`** (menor privilégio).
-Sites de teste antigos (`cdf-teste1`, `radiant-salmiakki-989226`) foram **deletados**;
-resta só o `caldodafanny`.
+**Publicação:** site estático no **Cloudflare** (Workers Static Assets), **conectado** ao
+**GitHub com deploy automático ativo** — no ar em **https://caldo-da-fanny.gomless.workers.dev**.
+Cada push em `main` republica o site sozinho. O Cloudflare serve a pasta **`frontend`** (onde
+está o `index.html`) sem etapa de build, conforme o **`wrangler.jsonc`** na raiz
+(`assets.directory = "./frontend"`).
+**Plano B — Netlify:** mantido como *fallback manual* (config preservada no `netlify.toml` da
+raiz, publish=`frontend`, sem build), **não divulgado** — só seria reativado numa eventual
+queda do Cloudflare. O acesso do Netlify ao GitHub segue restrito **apenas ao repositório
+`Caldo-da-Fanny`** (menor privilégio) e os sites de teste antigos (`cdf-teste1`,
+`radiant-salmiakki-989226`) foram **deletados** — resta só o `caldodafanny`.
 
 ---
 
