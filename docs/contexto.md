@@ -7,12 +7,12 @@
 - **Última atualização:** Sessão 6
 - **Sessão atual:** 6
 - **Status geral:** **Parte 1 no ar. Entregas C+D em `8348624`. E1 (carrinho) em `505065e`, no ar.**
-  Frete 100% no front (Nominatim + Haversine; ORS descartado). Backend limpo (**V8 no ar**) — só `doPost` +
-  healthcheck `doGet`. **Entrega E concluída no FRONT: E1 (carrinho — múltiplos caldos por tamanho, preço por
+  Frete 100% no front (Nominatim + Haversine; ORS descartado). Backend **V9 no ar** — `doPost` grava `data.itens` na planilha (17 col, A1:Q1) + healthcheck `doGet`. **Entrega E concluída no FRONT: E1 (carrinho — múltiplos caldos por tamanho, preço por
   item, ícone SVG da mandioca/P5) + E2 (tela de revisão — `#done` lista itens + Subtotal/Frete/Total, botões
   REVISAR PEDIDO / Confirmar Pedido, "Refazer pedido" sem apagar dados, aviso de frete a combinar; resolve P2/P3).**
-  Falta só a **parte backend da Entrega E — religar a planilha (`doPost`/`SHEETS_URL`, hoje vazia) e mapear
-  `data.itens`** (P8). Testes: front **72/72**. Selo "ENTREGA GRÁTIS" do cabeçalho corrigido (P6, Sessão 6).
+  **Entrega E 100% — P8 fechado:** backend V9 + `SHEETS_URL` ligada; planilha de 17 col gravando (smoke OK).
+  ⇒ **roadmap A–E COMPLETO.** Resta só docs: **P10** (README) e **P9** (dívida de testes). Testes: front
+  **72/72**, backend **60/60**. Sessão 6 também fechou P6 (selo "ENTREGA GRÁTIS") e P7 (teclado numérico).
 
 ---
 
@@ -198,7 +198,10 @@ de CEP→ORS para **ENDEREÇO→ORS** (o front envia os 4 campos do ViaCEP; o ba
 CEP puro na ORS = 0 resultados e o ViaCEP bloqueia o IP do Apps Script. `BASE_LONLAT` corrigido; `ORS_KEY`
 + permissão externa OK. Backend 49/49 + front 42/42 (provam o wiring, não o geocode real).
 
-**Próximo passo:** testar 1 CEP por faixa no site real (≤3/3–4/4–5/5–6/>6) + Entrega E (religar a planilha).
+**Sessão 6 — fechamento:** P6 (selo) + P7 (teclado numérico) + **P8 completo** (backend V9 lê `data.itens` e
+grava a planilha de 17 col; ativação + smoke test OK) ⇒ **roadmap A–E COMPLETO.** **Próximo passo:** só docs —
+**P10** (README desatualizado) e **P9** (limpar snapshots mortos `calcFrete`/`montarEndereco_` em
+`backend-tests.mjs`). Detalhe narrativo em [`docs/resumo-sessao-6.md`](resumo-sessao-6.md).
 
 ---
 
