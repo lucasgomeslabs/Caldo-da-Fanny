@@ -5,7 +5,7 @@
 
 ## Prioridade sugerida
 ~~Revisar Pedido (P2/P3)~~ **feito (E2)** → ~~múltiplos caldos (P4)~~ **feito (E1)** →
-**religar planilha (P8)** → visuais (~~P5~~ **feito** / ~~P6 selo~~ **feito**) e UX (~~P7~~ **feito**) → docs (**P10 README** logo após o P8; P9 dívida técnica).
+~~religar planilha (P8)~~ **feito** → visuais (~~P5~~ **feito** / ~~P6 selo~~ **feito**) e UX (~~P7~~ **feito**) → docs (~~P10 README~~ **feito**; **P9 dívida técnica** = único aberto).
 
 ## Funcionais — frete e pedido
 
@@ -96,11 +96,12 @@ Limpeza de inconsistências pré-Sessão 4 (não crítica):
   passa nos testes por testar a própria cópia, mas está dessincronizado do backend real.
 *(Registrado na Sessão 4; consertar numa próxima.)*
 
-### P10 — Atualizar README.md (pós-Entrega E)
-O `README.md` está desatualizado: descreve múltiplos caldos como **futuro** (já está pronto — E1),
-**não** menciona `docs/backlog.md` nem os `docs/resumo-sessao-N.md`, e não reflete o **cardápio P/G**,
-a **tela de revisão** (E2) nem o **frete por distância**. **Ideal atacar junto/logo após o P8** (quando a
-planilha religar e o estado estabilizar), para não reescrever duas vezes. *(Registrado: Sessão 5.)*
+### P10 — Atualizar README.md (pós-Entrega E) ✅ RESOLVIDO (Sessão 6)
+**Resolvido:** `README.md` reescrito sobre o estado real — link do site ao vivo, screenshot
+(`docs/screenshot.jpg`), carrinho multi-item/cardápio P/G, tela de revisão, frete por distância (linha reta),
+planilha de 17 colunas ligada, e uma seção de **decisões de arquitetura** (frete no navegador; backend
+desacoplado/não-bloqueante). Formato bilíngue e seção "Desenvolvimento" preservados; preços **não** cravados.
+*(Registrado: Sessão 5.)*
 
 ## Fora do escopo atual (registrado, não fazer agora)
 - **Identificação de cliente + fidelidade** — pós-MVP (contexto.md §8b: arquitetura, LGPD).

@@ -155,10 +155,10 @@ resta só o `caldodafanny`.
 
 ## 5. Pendências (o que falta / depende de decisão)
 
-**A lista única de pendências vive em [`docs/backlog.md`](backlog.md).** Itens abertos: **P8** (Entrega E —
-backend reescrito + **ativação FEITA**: cabeçalho 17 col, redeploy Apps Script **V9** e `SHEETS_URL` preenchida;
-falta só o **smoke test** da dona confirmar a 1ª linha gravada na planilha).
-*(✅ resolvidos: P1 frete — Sessão 4; **P4 múltiplos caldos + P5 ícone — Sessão 5 (E1); P2/P3 frete visível + tela de revisão — Sessão 5 (E2); P6 selo "ENTREGA GRÁTIS" + P7 teclado numérico — Sessão 6**.)*
+**A lista única de pendências vive em [`docs/backlog.md`](backlog.md).** Item aberto: **P9** (dívida técnica —
+`tests/backend-tests.mjs` ainda traz snapshots de `calcFrete`/`montarEndereco_`, que saíram do backend na
+Sessão 4; limpar — não crítico).
+*(✅ resolvidos: P1 frete — Sessão 4; **P4 múltiplos caldos + P5 ícone — Sessão 5 (E1); P2/P3 frete visível + tela de revisão — Sessão 5 (E2); P6 selo "ENTREGA GRÁTIS" + P7 teclado numérico + P8 planilha (backend V9 + 17 col, smoke OK) + P10 README — Sessão 6**.)*
 
 - **`ORS_KEY` (Script Properties):** **obsoleta** desde a Sessão 4 (o frete saiu do backend). Limpeza
   **opcional** — remover quando quiser; não afeta o código.
@@ -321,6 +321,12 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
   preenchemos a const **`SHEETS_URL`** no front com a URL `.../exec` do Web App (única alteração — linha 398).
   `tests/harness.html` **não** tocado (segue `SHEETS_URL=""` de propósito — testes não batem na rede); front
   **72/72**. **Falta só o smoke test** da dona (1 pedido real → conferir a 1ª linha na planilha) p/ marcar P8 100%.
+- **P10 (README) — RESOLVIDO (após o `resumo-sessao-6.md`, ainda na Sessão 6):** o resumo-6 registrou o **smoke
+  test PASSANDO** (P8 100% → Entrega E completa). Em seguida, `README.md` reescrito sobre o estado real: link do
+  site ao vivo + **screenshot** (`docs/screenshot.jpg` — normalizado de uma pasta/extensão-dupla acidental para
+  arquivo, sem reprocessar a imagem), carrinho/cardápio P/G, tela de revisão, frete por distância, planilha de
+  17 col e seção de **decisões de arquitetura**. Doc-only (nenhum código/teste tocado); commit próprio. Resta só
+  **P9** (dívida de testes).
 
 ### Sessão 5
 - **Entrega E1 — núcleo do carrinho (frontend), implementada e testada (working tree, NÃO commitada até teste no navegador):**
