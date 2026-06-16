@@ -327,6 +327,10 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
   arquivo, sem reprocessar a imagem), carrinho/cardápio P/G, tela de revisão, frete por distância, planilha de
   17 col e seção de **decisões de arquitetura**. Doc-only (nenhum código/teste tocado); commit próprio. Resta só
   **P9** (dívida de testes).
+- **`GUIA-INSTALACAO.md` (manual da dona) — correção cirúrgica de 3 trechos obsoletos pós-Sessão 4/P8:**
+  removido o setup da chave ORS/OpenRouteService (2.2b — frete agora é automático no navegador); planilha
+  atualizada de 16 → **17 colunas**; FAQ de preços passou a apontar a lista **`CARDAPIO`** (não há mais
+  `const PRICE`). Doc-only; commit próprio.
 
 ### Sessão 5
 - **Entrega E1 — núcleo do carrinho (frontend), implementada e testada (working tree, NÃO commitada até teste no navegador):**

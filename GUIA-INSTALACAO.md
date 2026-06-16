@@ -30,17 +30,7 @@ mensagem pronta. A planilha é o passo extra que cria a **fila automática**.
 2. Apague o que estiver lá e **cole todo o conteúdo** de `google-apps-script.js`.
 3. Clique no disquete 💾 (Salvar).
 
-### 2.2b Colar a chave do mapa (cálculo automático do frete)
-O frete por distância usa o serviço gratuito **OpenRouteService**. A chave fica
-**guardada no Apps Script** (nunca no site), assim ninguém consegue copiá-la.
-1. Crie uma conta grátis em **openrouteservice.org** e gere uma **API key**.
-2. No Apps Script: engrenagem **⚙ Configurações do projeto → Propriedades do script
-   → Adicionar propriedade do script**.
-3. Em **Propriedade** escreva `ORS_KEY` e em **Valor** cole a sua chave. Salve.
-4. (Opcional) No arquivo, ajuste `BASE_LONLAT` para a coordenada exata do endereço-base.
-
-> Enquanto a chave não estiver colada, o site **funciona normalmente**: ele apenas mostra
-> **"frete a confirmar pelo WhatsApp"** no lugar do valor calculado. Nada trava.
+> O frete por distância é calculado automaticamente pelo site — a dona não precisa configurar nada.
 
 ### 2.3 Publicar como App da Web
 1. No topo, clique em **Implantar → Nova implantação**.
@@ -67,9 +57,9 @@ O frete por distância usa o serviço gratuito **OpenRouteService**. A chave fic
 4. Salve.
 
 Pronto. Agora **cada pedido cai na planilha em ordem de chegada**, com número
-(#001, #002…), horário e status "Recebido". A planilha tem **16 colunas**: Pedido, Horário,
-Nome, Telefone, Endereço, Bairro, CEP, Distância(km), Caldo, Qtde, Pagamento, Observações,
-Subtotal, Frete, Total, Status. Essa ordem é a sua fila de prioridade.
+(#001, #002…), horário e status "Recebido". A planilha tem **17 colunas**: Pedido, Ref. cliente,
+Horário, Nome, Telefone, Endereço, Complemento, Bairro, CEP, Distância (km), Itens, Subtotal,
+Frete, Total, Pagamento, Observações, Status. Essa ordem é a sua fila de prioridade.
 
 ---
 
@@ -107,5 +97,4 @@ Toda vez que editar o Apps Script, faça **Implantar → Gerenciar implantaçõe
 editar (lápis) → Versão: Nova → Implantar**. A URL continua a mesma.
 
 **Quero mudar preços ou sabores.**
-No `index.html`, edite a seção do menu (`<div class="menu">`) e a constante
-`const PRICE = 24.90;`.
+No `index.html`, edite a lista `CARDAPIO` no início do código — cada caldo tem nome (`tipo`), tamanho (`tamanho`/`volume`) e preço (`preco`). É ali que você muda os sabores, os tamanhos e os valores. (Não existe mais um preço único `const PRICE`.)
