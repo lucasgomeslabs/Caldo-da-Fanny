@@ -90,7 +90,7 @@ pedido (E2), ambos commitados e no ar (Netlify). Falta só a **parte backend** �
 
 ## 8. Dados úteis
 - **Commits:** `505065e` (E1), `db84665` (E2). Anteriores: `8348624` (C+D).
-- **Repo:** github.com/lucascontatoedf-lgtm/Caldo-da-Fanny — branch `main`.
+- **Repo:** github.com/lucasgomeslabs/Caldo-da-Fanny — branch `main`.
 - **Site:** caldodafanny.netlify.app (deploy automático no push p/ `main`; publish=`frontend`, sem build).
 - **Testes:** `node tests/run-tests.mjs` → **72/72** (T1–T17).
 - **CEPs de smoke (frete):** 06286310, 06286240, 06253000.

@@ -33,7 +33,7 @@ Google Apps Script que grava pedidos numa planilha — hoje **desligado**.
 - \`Banner/\`, \`GUIA-INSTALACAO.md\`, \`.gitignore\`, \`files.zip\` (ignorado no git).
 
 **Repositório:** GitHub \`origin\` configurado
-(\`https://github.com/lucascontatoedf-lgtm/Caldo-da-Fanny.git\`), branch \`main\`.
+(\`https://github.com/lucasgomeslabs/Caldo-da-Fanny.git\`), branch \`main\`.
 Existe uma branch local \`backup/pre-hardening\` (não publicada, ponto de restauração).
 
 **Publicação:** site estático no **Netlify**, **já conectado** ao **GitHub com deploy

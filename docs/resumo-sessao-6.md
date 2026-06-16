@@ -111,7 +111,7 @@ breve" (futuro).
 ## 8. Dados úteis
 - **Commits da Sessão 6:** `8c751fa` (P6), `1a2803b` (P7), `8ea4c77` (P8 backend), `6a4c7ca`
   (P8 ativação). Anteriores: `db84665` (E2/S5), `505065e` (E1/S5), `8348624` (C+D).
-- **Repo:** github.com/lucascontatoedf-lgtm/Caldo-da-Fanny — branch main.
+- **Repo:** github.com/lucasgomeslabs/Caldo-da-Fanny — branch main.
 - **Site:** caldodafanny.netlify.app (deploy automático no push; publish=frontend, sem build).
   Furar cache: Ctrl+Shift+R.
 - **Testes:** `node tests/run-tests.mjs` → 72/72; `node tests/backend-tests.mjs` → 60/60.
