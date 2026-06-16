@@ -29,8 +29,8 @@ working tree e entra no commit da Parte 3 (esta tarefa).
 - **Commit `8e25026`:** sincronizou o `contexto.md` com o git (C+D já estavam em `8348624` e no
   ar — o contexto dizia "aguardando commit", estava stale) e registrou a convenção da skill
   (o `prompt.md` guarda só um ponteiro).
-- **`BASE_LONLAT` geocodificado** para `[-46.806196, -23.477291]` (R. Açucena, 175, Parque
-  Imperial, Barueri/SP), confirmado no mapa. O valor antigo `[-46.8470, -23.5180]` estava ~6 km
+- **`BASE_LONLAT` geocodificado** para a coordenada-base (valor no `frontend/index.html`, nível
+  quarteirão — Parque Imperial, Barueri/SP), confirmado no mapa. A aproximação antiga estava ~6 km
   fora — teria quebrado todo o cálculo de frete.
 - **`ORS_KEY` confirmada** em Propriedades do Script (não hardcoded, sem vazamento no repo).
 - **Permissão `script.external_request` concedida** no Apps Script (via função temporária
@@ -147,7 +147,7 @@ Duas perguntas a responder:
 - Smoke liveness: abrir /exec sem parâmetros → "Caldo da Fanny — ativo".
 - Smoke frete (Opção 1, após V5): /exec?cep=<8díg>&logradouro=…&bairro=…&localidade=…&uf=…&callback=cb
 - CEPs reais p/ teste (Osasco): Mútinga 06286310 (R. Âmbar), 06286240 (R. Topázio);
-  Helena Maria 06253000 (R. Pres. Costa e Silva). Base 06462520. Longe 01310100. Inexistente 00000000.
+  Helena Maria 06253000 (R. Pres. Costa e Silva). Base (Parque Imperial, Barueri). Longe 01310100. Inexistente 00000000.
 - Commits: 8348624 (C+D, no ar) · 8e25026 (sync de doc).
 - SHEETS_URL ainda VAZIO no front → backend não é chamado. Preencher liga frete (doGet) E
   gravação na planilha (doPost). O doPost monta a planilha sozinho (cabeçalho 16 colunas A1:P1).

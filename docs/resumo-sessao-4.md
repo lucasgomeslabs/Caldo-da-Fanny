@@ -37,7 +37,7 @@ fechado nesta sessão — P2–P8 seguem para as próximas.
 - **P7** — `inputmode="numeric"` no campo Número.
 
 ## Dados úteis
-- Base aprox. (front): `BASE_LONLAT = [-23.4778015, -46.8063410]` (formato [lat, lon]).
+- Base aprox. (front): `BASE_LONLAT` no `frontend/index.html`, formato [lat, lon] (nível quarteirão).
 - Régua de frete: ≤2 grátis / >2–3 R$4 / >3–5 R$6 / >5 consultar (fronteira na faixa mais barata).
 - Geocode: Nominatim (`/search?format=json&street=&city=&state=`), no navegador.
 - Trava geográfica: > 30 km da base → "a confirmar".

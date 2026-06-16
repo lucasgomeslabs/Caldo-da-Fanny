@@ -178,8 +178,8 @@ const tests = {
     eq(calcFrete('x').status, 'indef', 'nao-numero = indef (fallback)');
   },
   'B10 — montarEndereco_: texto do ViaCEP (campos nao-vazios + Brasil)'() {
-    eq(montarEndereco_({ logradouro: 'Rua Açucena', bairro: 'Parque Imperial', localidade: 'Barueri', uf: 'SP' }),
-      'Rua Açucena, Parque Imperial, Barueri, SP, Brasil', 'todos os campos presentes');
+    eq(montarEndereco_({ logradouro: 'Rua das Flores', bairro: 'Parque Imperial', localidade: 'Barueri', uf: 'SP' }),
+      'Rua das Flores, Parque Imperial, Barueri, SP, Brasil', 'todos os campos presentes');
     eq(montarEndereco_({ logradouro: '', bairro: '', localidade: 'Barueri', uf: 'SP' }),
       'Barueri, SP, Brasil', 'CEP generico (logradouro/bairro vazios) -> cidade, UF, Brasil');
     eq(montarEndereco_({ logradouro: '', bairro: '', localidade: '', uf: 'SP' }),

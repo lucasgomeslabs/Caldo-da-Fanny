@@ -437,9 +437,9 @@ $('#menu').addEventListener('click',(e)=>{
   });
 });
 /* ===================== FRETE por distância (Entrega D) ===================== */
-// Base do frete em [lat, lon] (≈ CEP 06462520, R. Açucena — Parque Imperial, Barueri).
+// Base do frete em [lat, lon] (≈ Parque Imperial, Barueri — nível quarteirão).
 // ATENÇÃO: ordem [lat, lon] (a Haversine usa lat,lon). Difere do backend, que usa [lon,lat].
-const BASE_LONLAT = [-23.4778015, -46.8063410];
+const BASE_LONLAT = [-23.478, -46.806];
 /* calcFrete(km): tabela em DEGRAUS por distância em LINHA RETA (km) até a base.
    Limites (documentados): km<=2 grátis; (2,3] R$4; (3,5] R$6; km>5 "consultar".
    Ex.: 2,0=grátis · 2,5=R$4 · 3,0=R$4 · 5,0=R$6 · 5,5=consultar.

@@ -92,7 +92,7 @@ resta só o `caldodafanny`.
   - Cabeçalho final (17 col, A1:Q1): Pedido · Ref. cliente · Horário · Nome · Telefone · Endereço · Complemento ·
     Bairro · CEP · Distância (km) · Itens · Subtotal · Frete · Total · Pagamento · Observações · Status.
 - **Múltiplos caldos (tipos diferentes):** confirmado — Entrega E.
-- **Endereço-base do frete:** **Rua Açucena, 175 — Parque Imperial, Barueri — CEP 06462520**
+- **Endereço-base do frete:** **Parque Imperial, Barueri**
   (substitui a referência anterior, que tinha só o CEP de origem).
 - **Regra de frete (Sessão 4 — por distância em LINHA RETA/Haversine):**
   - até 2 km: **grátis**
@@ -124,8 +124,8 @@ resta só o `caldodafanny`.
   navegador) **envia os 4 campos do endereço** ao backend, que geocodifica na ORS. Reusa `montarEndereco_`
   (pura, testada). Backend: `enderecoDoCep_` removida; `geocodeCep_` → `geocodeEndereco_`; temporárias
   `_autorizar`/`_diag` removidas.
-- **`BASE_LONLAT` corrigido:** de `[-46.8470, -23.5180]` (aproximado, ~6 km fora) para
-  `[-46.806196, -23.477291]` (R. Açucena, 175 — geocodificado e confirmado no mapa). `ORS_KEY` em
+- **`BASE_LONLAT` corrigido:** de uma aproximação ~6 km fora para a coordenada-base geocodificada e
+  confirmada no mapa (valor no `frontend/index.html`, nível quarteirão). `ORS_KEY` em
   Script Properties (confirmada); permissão `script.external_request` concedida no Apps Script.
 - **Honeypot (Entrega C): só no backend.** Não entra em `validate()` nem é `required`; o backend
   ignora o pedido (finge sucesso) quando o campo isca vem preenchido.
@@ -389,7 +389,7 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
   ViaCEP (logradouro/bairro/localidade/uf) ao backend, que geocodifica o endereço na ORS. Motivo:
   CEP puro na ORS = 0 resultados; e o backend não alcança o ViaCEP (bloqueio de IP do Google/Apps
   Script). Backend 49/49 + front 42/42. **Ativação pendente:** redeploy V5 + `SHEETS_URL` + smoke por curl.
-- **`BASE_LONLAT` geocodificado** `[-46.806196, -23.477291]` (era ~6 km fora). `ORS_KEY` em Script
+- **`BASE_LONLAT` geocodificado** (coordenada-base no `frontend/index.html`, nível quarteirão; era ~6 km fora). `ORS_KEY` em Script
   Properties confirmada; permissão `script.external_request` concedida (via `_autorizar`); diagnóstico
   por `_diag`. Temporárias `_autorizar`/`_diag` e `enderecoDoCep_` removidas; `geocodeCep_` → `geocodeEndereco_`.
 - Criadas 2 skills cross-projeto: `code-handoff-prompt` e `session-summary`.
@@ -422,7 +422,7 @@ Organização: a documentação de trabalho fica em `docs/`; o `README.md` fica 
 - **Entrega B commitada e publicada:** commit `27c2caa` → push para origin/main (deploy automático).
 - **Frete redefinido (decisão/doc):** por distância real em km (≤3 grátis / 3–4 R$4 / 4–5 R$6 /
   5–6 R$8 / >6 consultar no WhatsApp); regra antiga por bairros descartada. Endereço-base:
-  Rua Açucena, 175 — Parque Imperial, Barueri (CEP 06462520).
+  Parque Imperial, Barueri.
 - **Arquitetura da Entrega D decidida:** distância via OpenRouteService (grátis); chave guardada
   no backend (Apps Script), nunca no front. Ordem definida: C (segurança) antes de D.
 - **Entrega C analisada (plano apresentado, NÃO implementada):** anti-fórmula Sheets, validação/

@@ -29,7 +29,7 @@
 - Endpoint `/exec`: https://script.google.com/macros/s/AKfycby6fGQYm2LRVG7bEflWBOCwGmJQ7PEA8DvFTMfq7OTI7D13adcMhn5v4Rcfe1LwRbuz/exec
 - `FRETE_URL` (front) = `/exec`; `SHEETS_URL` = `""` (Entrega E).
 - `ORS_KEY` em Script Properties (backend), nunca no repo; permissão `script.external_request` concedida.
-- `BASE_LONLAT = [-46.806196, -23.477291]`.
+- `BASE_LONLAT`: coordenada-base no `frontend/index.html` (nível quarteirão).
 - Tabela de frete: ≤3 grátis / 3–4 R$4 / 4–5 R$6 / 5–6 R$8 / >6 consultar.
 - Smoke input → resultado: Av. Yara, Vila Yara, Osasco/SP → `km = 10`.
 - Commits relevantes: `988d08d` (docs/governança), `de63ff0` (Parte 3 backend + `resumo-sessao-2.md`), e este commit (frete + contexto + `resumo-sessao-3.md`).

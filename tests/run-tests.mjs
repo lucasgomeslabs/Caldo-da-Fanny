@@ -202,7 +202,7 @@ const tests = {
     eq(h(0,0,0,0), 0, 'mesma coordenada = 0 km');
     ok(Math.abs(h(0,0,1,0) - 111.1949) < 0.1, '1° de latitude ≈ 111,19 km  (obtido ' + h(0,0,1,0).toFixed(4) + ')');
     // ATENÇÃO: literal da base copiado de BASE_LONLAT (const não vai p/ window). Se mudar a base no index.html/harness, ATUALIZAR este valor.
-    const km = h(-23.4778015, -46.8063410, -23.494849, -46.800028); // base → R. Alberto Xavier de Toledo
+    const km = h(-23.478, -46.806, -23.494849, -46.800028); // base → R. Alberto Xavier de Toledo
     ok(Math.abs(km - 2.0) < 0.15, 'base → R. Alberto Xavier de Toledo ≈ 2,0 km  (obtido ' + km.toFixed(2) + ')');
   },
 
